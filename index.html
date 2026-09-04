@@ -284,6 +284,13 @@ select:focus{border-color:var(--accent)}
       <div class="src">Nominal ene–jul-26 llevado a precios de jul-26 (IPC oficial INDEC) ≈ hoy · lic.15 (12-ago) y lic.16 (27-ago) sin ajustar — diferencia de precios en esa ventana se considera despreciable</div>
     </div>
   </div>
+  <div class="g1">
+    <div class="panel">
+      <div class="pt"><i class="ig"></i>Vencimientos de Próximas Licitaciones ($bn)</div>
+      <canvas id="cVencProximas" style="max-height:280px"></canvas>
+      <div class="src">Calendario de vencimientos futuros (quincenal) · Se actualiza licitación a licitación</div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ TAB 2: COMPOSICIÓN ══ -->
@@ -460,6 +467,27 @@ const D = [
   {n:"2026-16",f:"27-ago",venc:12.60, adj:12.16, of:13.18,ro:0.9655,   abs:-0.44, absM2:null, b2c:1.08,rech:7.70,wve:142,wvno:null, conc:50.0,shares:{L:89.7,C:6.9, T:0,   D:3.4, X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:111.0, ofertas:4610},
 ];
 const D_TABLA = [D[D.length-1], ...D.slice(0, D.length-1)];
+
+// ── VENCIMIENTOS DE PRÓXIMAS LICITACIONES (calendario quincenal, $bn) ──
+// Se actualiza licitación a licitación. Formato: {l:"etiqueta eje X", v:monto en $bn}.
+const VENC_PROXIMAS = [
+  {l:"Mid sept-26", v:8.1},  {l:"sept-26",     v:12.2},
+  {l:"Mid oct-26",  v:4.8},  {l:"oct-26",      v:17.5},
+  {l:"Mid nov-26",  v:6.0},  {l:"nov-26",      v:20.9},
+  {l:"Mid dic-26",  v:34.9}, {l:"Mid ene-27",  v:17.0},
+  {l:"ene-27",      v:3.9},  {l:"Mid feb-27",  v:0.0},
+  {l:"feb-27",      v:4.8},  {l:"Mid mar-27",  v:0.0},
+  {l:"mar-27",      v:5.8},  {l:"Mid abr-27",  v:0.0},
+  {l:"abr-27",      v:14.5}, {l:"Mid may-27",  v:0.9},
+  {l:"may-27",      v:15.5}, {l:"Mid jun-27",  v:0.0},
+  {l:"jun-27",      v:22.9}, {l:"Mid jul-27",  v:0.0},
+  {l:"jul-27",      v:2.7},  {l:"Mid ago-27",  v:0.0},
+  {l:"ago-27",      v:1.8},  {l:"Mid sept-27", v:0.0},
+  {l:"sept-27",     v:3.7},  {l:"Mid oct-27",  v:0.0},
+  {l:"oct-27",      v:0.5},  {l:"Mid nov-27",  v:0.0},
+  {l:"nov-27",      v:0.0},  {l:"Mid dic-27",  v:0.0},
+  {l:"dic-27",      v:27.7},
+];
 
 const INSTRS = {
   0:[
@@ -802,6 +830,7 @@ function buildRolloverCharts(){
     v=>`${v>0?'+':''}${v}bn`,v=>`${v>0?'+':''}${v.toFixed(2)}bn`);
   // Vencimientos en términos reales (deflactado por IPC, base dic-25=1.00)
   buildVencReal();
+  buildVencProximas();
   // Rollover mensual ponderado: Σ adj / Σ venc por mes calendario
   const MES_ORD=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const agg={};
@@ -859,6 +888,16 @@ function buildVencReal(){
   });
   mkBarLbl('cVencReal',lblsVR,real,'rgba(251,146,60,.6)','#fb923c',
     v=>`$${v}bn`,v=>`$${v.toFixed(2)}bn (pesos de hoy)`);
+}
+
+// Calendario de vencimientos de próximas licitaciones (VENC_PROXIMAS, editable arriba)
+function buildVencProximas(){
+  const labels = VENC_PROXIMAS.map(x=>x.l);
+  const data = VENC_PROXIMAS.map(x=>x.v);
+  mkBarLbl('cVencProximas', labels, data,
+    'rgba(34,197,94,.55)', '#22c55e',
+    v=>`$${v}bn`, v=>`$${v.toFixed(1)}bn`,
+    {x:{...XA,ticks:{...XA.ticks,maxRotation:90,minRotation:90}}});
 }
 
 // ── TAB 2: COMPOSICIÓN ───────────────────────────────────────────────────────
