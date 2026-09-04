@@ -275,20 +275,16 @@ select:focus{border-color:var(--accent)}
     <div class="panel"><div class="pt"><i class="ia"></i>Rollover Acumulado 2026 (%)</div><canvas id="cRoAcum"></canvas><div class="src">Σ Adj. / Σ Vencimientos — acumulado licitación a licitación</div></div>
     <div class="panel"><div class="pt"><i class="ir"></i>Absorción Neta por Licitación ($bn)</div><canvas id="cAbs"></canvas><div class="src">VE Adjudicado – Vencimientos enfrentados</div></div>
   </div>
-  <div class="g3">
+  <div class="g2">
     <div class="panel"><div class="pt"><i class="ia"></i>Rollover por Mes (%)</div><canvas id="cRoMes"></canvas><div class="src">Ponderado: Σ Adj. / Σ Vencimientos del mes</div></div>
     <div class="panel"><div class="pt"><i class="ia"></i>Absorción Neta % M2 y MUSD</div><canvas id="cAbsM2"></canvas><div class="src">TC $1.474,74 (Com. A3500 14-jul-26) · M2 total estimado por fecha · lic.16 pend. M2 oficial de agosto</div></div>
-    <div class="panel">
-      <div class="pt"><i class="io"></i>Vencimientos en Pesos de Hoy (27-ago-26, $bn)</div>
-      <canvas id="cVencReal"></canvas>
-      <div class="src">Nominal ene–jul-26 llevado a precios de jul-26 (IPC oficial INDEC) ≈ hoy · lic.15 (12-ago) y lic.16 (27-ago) sin ajustar — diferencia de precios en esa ventana se considera despreciable</div>
-    </div>
   </div>
   <div class="g1">
     <div class="panel">
-      <div class="pt"><i class="ig"></i>Vencimientos de Próximas Licitaciones ($bn)</div>
-      <canvas id="cVencProximas" style="max-height:280px"></canvas>
-      <div class="src">Calendario de vencimientos futuros (quincenal) · Se actualiza licitación a licitación</div>
+      <div class="pt"><i class="io"></i>Vencimientos — Pasado (pesos de hoy) + Próximas Licitaciones ($bn)</div>
+      <canvas id="cVencTimeline" style="max-height:280px"></canvas>
+      <div class="leg"><div class="li"><div class="ld" style="background:#fb923c"></div>Ya vencido (licitaciones pasadas)</div><div class="li"><div class="ld" style="background:#22c55e"></div>Próximo (calendario quincenal)</div></div>
+      <div class="src">Pasado: nominal ene–jul-26 llevado a precios de jul-26 (IPC INDEC) ≈ hoy, lic.15/16 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
     </div>
   </div>
 </div>
@@ -828,9 +824,8 @@ function buildRolloverCharts(){
     DR.map(d=>d.abs>=0?'rgba(16,185,129,.6)':'rgba(239,68,68,.6)'),
     DR.map(d=>d.abs>=0?'#10b981':'#ef4444'),
     v=>`${v>0?'+':''}${v}bn`,v=>`${v>0?'+':''}${v.toFixed(2)}bn`);
-  // Vencimientos en términos reales (deflactado por IPC, base dic-25=1.00)
+  // Vencimientos en términos reales (deflactado por IPC, base dic-25=1.00) + proximas licitaciones
   buildVencReal();
-  buildVencProximas();
   // Rollover mensual ponderado: Σ adj / Σ venc por mes calendario
   const MES_ORD=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const agg={};
@@ -886,18 +881,17 @@ function buildVencReal(){
     const mult = CPI_IDX[m] ? (CPI_HOY / CPI_IDX[m]) : 1; // ago (lic.15/16) sin dato oficial → constante
     return +(d.venc * mult).toFixed(2);
   });
-  mkBarLbl('cVencReal',lblsVR,real,'rgba(251,146,60,.6)','#fb923c',
-    v=>`$${v}bn`,v=>`$${v.toFixed(2)}bn (pesos de hoy)`);
-}
-
-// Calendario de vencimientos de próximas licitaciones (VENC_PROXIMAS, editable arriba)
-function buildVencProximas(){
-  const labels = VENC_PROXIMAS.map(x=>x.l);
-  const data = VENC_PROXIMAS.map(x=>x.v);
-  mkBarLbl('cVencProximas', labels, data,
-    'rgba(34,197,94,.55)', '#22c55e',
-    v=>`$${v}bn`, v=>`$${v.toFixed(1)}bn`,
-    {x:{...XA,ticks:{...XA.ticks,maxRotation:90,minRotation:90}}});
+  // ── timeline unico: pasado (real) + proximo (VENC_PROXIMAS) en un solo grafico ──
+  const labelsFuturo = VENC_PROXIMAS.map(x=>x.l);
+  const dataFuturo = VENC_PROXIMAS.map(x=>x.v);
+  const labels = [...lblsVR, ...labelsFuturo];
+  const data = [...real, ...dataFuturo];
+  const bg = [...real.map(()=>'rgba(251,146,60,.6)'), ...dataFuturo.map(()=>'rgba(34,197,94,.55)')];
+  const bc = [...real.map(()=>'#fb923c'), ...dataFuturo.map(()=>'#22c55e')];
+  new Chart(document.getElementById('cVencTimeline'),{type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:bg,borderColor:bc,borderWidth:1,borderRadius:2}]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`$${c.raw.toFixed(2)}bn`}}},
+      scales:{x:{...XA,ticks:{...XA.ticks,maxRotation:90,minRotation:90}},y:YA(v=>`$${v}bn`)}}});
 }
 
 // ── TAB 2: COMPOSICIÓN ───────────────────────────────────────────────────────
