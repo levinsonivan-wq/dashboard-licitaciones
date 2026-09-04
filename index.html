@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Licitaciones – Tesoro Nacional 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#070b14;--surface:#0f1623;--border:#1f3352;--border2:#2a4266;
+  --text:#f1f5f9;--muted:#94a3b8;--accent:#38bdf8;
+  --lecap:#60a5fa;--cer:#4ade80;--tamar:#facc15;--dl:#fb923c;--dual:#c084fc;
+  --green:#22d3a5;--red:#f87171;--yellow:#facc15;--pink:#f472b6;--orange:#fb923c;
+  --llamado:#1e3a5f;--licitacion:#14532d;--liquidacion:#374151;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:15px;min-height:100vh}
+
+/* ── HEADER ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.topbar h1{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:var(--accent)}
+.topbar p{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
+.tag{background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:1px}
+
+/* ── TABS ── */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0}
+.tab{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:13px 20px;cursor:pointer;color:#94a3b8;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:#f1f5f9}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── CONTENT ── */
+.content{padding:20px 24px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── KPIs ── */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:11px 13px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.ca::before{background:var(--accent)}.kpi.cg::before{background:var(--green)}
+.kpi.cr::before{background:var(--red)}.kpi.cy::before{background:var(--yellow)}
+.kpi.cp::before{background:var(--dual)}.kpi.cpk::before{background:var(--pink)}
+.kl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.kv{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1;color:#f1f5f9}
+.ks{font-size:10px;color:#94a3b8;margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.g1{margin-bottom:12px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px 16px}
+.pt{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#cbd5e1;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.pt i{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.ia{background:var(--accent)}.ig{background:var(--green)}.iy{background:var(--yellow)}
+.ip{background:var(--dual)}.ipk{background:var(--pink)}.ir{background:var(--red)}.io{background:var(--orange)}
+canvas{max-height:185px}
+.ct{max-height:240px!important}
+.leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px}
+.li{display:flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#94a3b8}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.src{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;font-style:italic}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:10px}
+th{color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:.8px;text-align:right;padding:5px 7px;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
+th:first-child{text-align:left}
+td{padding:7px 9px;text-align:right;border-bottom:1px solid rgba(31,51,82,0.7);white-space:nowrap;color:#f1f5f9;font-size:11px}
+td:first-child{text-align:left;color:var(--accent)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(56,189,248,0.04)}
+.vup{color:var(--green)}.vdn{color:var(--red)}.vna{color:var(--muted)}
+
+/* ── DETALLE POR LICITACIÓN ── */
+.select-wrap{margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.select-wrap label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+select{background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 14px;border-radius:4px;outline:none;cursor:pointer;min-width:220px}
+select:focus{border-color:var(--accent)}
+.lic-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.ls-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+.ls-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.ls-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600}
+
+/* Instrument table colors */
+.row-lecap td{background:rgba(59,130,246,0.06)}
+.row-cer   td{background:rgba(34,197,94,0.06)}
+.row-tamar td{background:rgba(234,179,8,0.06)}
+.row-dl    td{background:rgba(249,115,22,0.06)}
+.row-hd    td{background:rgba(168,85,247,0.06)}
+.row-dual  td{background:rgba(236,72,153,0.06)}
+.type-badge{display:inline-block;font-size:8px;padding:2px 6px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-weight:600}
+.tb-lecap{background:rgba(59,130,246,0.2);color:#93c5fd}
+.tb-cer{background:rgba(34,197,94,0.2);color:#86efac}
+.tb-tamar{background:rgba(234,179,8,0.2);color:#fde047}
+.tb-dl{background:rgba(249,115,22,0.2);color:#fdba74}
+.tb-hd{background:rgba(168,85,247,0.2);color:#d8b4fe}
+.tb-dual{background:rgba(236,72,153,0.2);color:#f9a8d4}
+
+/* ── CALENDARIO ── */
+.cal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.cal-month{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px}
+.cal-month h3{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;text-align:center;margin-bottom:10px;color:var(--text)}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-header{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-align:center;padding:2px 0;font-weight:500}
+.cal-day{font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:center;padding:3px 2px;border-radius:3px;position:relative;min-height:20px;line-height:14px}
+.cal-day.empty{background:transparent}
+.cal-day.normal{color:var(--muted)}
+.cal-day.llamado{background:#1e3a5f;color:#93c5fd;font-weight:600}
+.cal-day.licitacion{background:#14532d;color:#86efac;font-weight:600}
+.cal-day.liquidacion{background:#374151;color:#9ca3af;font-weight:600}
+.cal-day.hoy{outline:1px solid var(--accent)}
+.cal-day.pasado{opacity:0.45}
+.cal-legend{display:flex;gap:16px;margin-bottom:14px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:4px}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted)}
+.cal-legend-dot{width:12px;height:12px;border-radius:2px}
+.proximas{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:14px}
+.prox-title{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px}
+.prox-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid rgba(30,45,64,0.5)}
+.prox-row:last-child{border-bottom:none}
+.prox-date{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;width:90px;flex-shrink:0}
+.prox-type{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:1px;width:90px;text-align:center;flex-shrink:0}
+.pt-llamado{background:#1e3a5f;color:#93c5fd}
+.pt-licitacion{background:#14532d;color:#86efac}
+.pt-liquidacion{background:#374151;color:#9ca3af}
+.prox-dias{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.prox-dias.soon{color:var(--yellow)}
+.prox-dias.today{color:var(--green);font-weight:600}
+
+/* ── RESPONSIVE ── */
+.tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+@media (max-width:1024px){
+  .kpis{grid-template-columns:repeat(3,1fr)!important}
+  .g3{grid-template-columns:1fr 1fr}
+  .lic-summary{grid-template-columns:repeat(3,1fr)}
+  .cal-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  body{font-size:14px}
+  .topbar{padding:12px 14px;flex-wrap:wrap;gap:6px}
+  .topbar h1{font-size:14px}
+  .topbar p{font-size:9.5px}
+  .content{padding:14px}
+  .tabs{padding:0 10px}
+  .tab{padding:11px 13px;font-size:10px}
+  .kpis{grid-template-columns:repeat(2,1fr)!important;gap:8px}
+  .kv{font-size:18px}
+  .g2,.g3{grid-template-columns:1fr}
+  .lic-summary{grid-template-columns:repeat(2,1fr)}
+  .cal-grid{grid-template-columns:1fr 1fr}
+  .select-wrap{flex-wrap:wrap}
+  select{min-width:0;width:100%}
+  canvas{max-height:220px!important}
+}
+@media (max-width:480px){
+  .kpis{grid-template-columns:1fr 1fr!important}
+  .lic-summary{grid-template-columns:1fr 1fr}
+  .cal-grid{grid-template-columns:1fr}
+  .cal-legend{flex-wrap:wrap;gap:8px}
+  .kv{font-size:16px}
+  th,td{padding:5px 6px;font-size:9px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>TESORO NACIONAL — LICITACIONES 2026</h1>
+    <p>Secretaría de Finanzas · Ene–Ago 2026 · 16 licitaciones · 127 instrumentos · TC Com. A3500: $1.514,16 (26-ago-26)</p>
+  </div>
+  <div class="tag">ARG MACRO DESK</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab(5)">Tabla Resumen</div>
+  <div class="tab" onclick="showTab(0)">Detalle por Licitación</div>
+  <div class="tab" onclick="showTab(1)">Rollover</div>
+  <div class="tab" onclick="showTab(2)">Composición</div>
+  <div class="tab" onclick="showTab(3)">Demanda</div>
+  <div class="tab" onclick="showTab(4)">Hard Dollar</div>
+  <div class="tab" onclick="showTab(6)">Calendario</div>
+  <div class="tab" onclick="showTab(7)">Perfil Vencimientos</div>
+  <div class="tab" onclick="showTab(8)">Conversiones</div>
+</div>
+
+<div class="content">
+
+<!-- ══ TAB 0: DETALLE POR LICITACIÓN ══ -->
+<div class="tab-panel" id="tab0">
+  <div class="select-wrap">
+    <label>Licitación</label>
+    <select id="licSelect" onchange="renderDetalle();renderConversiones(+this.value)">
+      <option value="0">2026-01 · 14 ene 2026</option>
+      <option value="1">2026-02 · 28 ene 2026</option>
+      <option value="2">2026-03 · 11 feb 2026</option>
+      <option value="3">2026-04 · 25 feb 2026</option>
+      <option value="4">2026-05 · 12 mar 2026</option>
+      <option value="5">2026-06 · 27 mar 2026</option>
+      <option value="6">2026-07 · 15 abr 2026</option>
+      <option value="7">2026-08 · 28 abr 2026</option>
+      <option value="8">2026-09 · 13 may 2026</option>
+      <option value="9">2026-10 · 27 may 2026</option>
+      <option value="10">2026-11 · 10 jun 2026</option>
+      <option value="11">2026-12 · 26 jun 2026</option>
+      <option value="12">2026-13 · 15 jul 2026</option>
+      <option value="13">2026-14 · 29 jul 2026</option>
+      <option value="14">2026-15 · 12 ago 2026</option>
+      <option value="15" selected>2026-16 · 27 ago 2026</option>
+    </select>
+  </div>
+  <div class="lic-summary" id="licSummary"></div>
+  <div class="panel">
+    <div class="pt"><i class="ia"></i>Instrumentos</div>
+    <div class="tw"><table id="instrTable">
+      <thead><tr>
+        <th style="text-align:left">Ticker</th>
+        <th style="text-align:left">Descripción</th>
+        <th>Tipo</th>
+        <th>Nueva/Reap.</th>
+        <th>Vencimiento</th>
+        <th>Plazo (d)</th>
+        <th>VNO Ofertado</th>
+        <th>VNO Adj.</th>
+        <th>VE Adj.</th>
+        <th>VNO Circ.</th>
+        <th>Share %</th>
+        <th>Tasa Corte</th>
+        <th>Tipo Tasa</th>
+        <th>Precio Corte</th>
+        <th>TIREA</th>
+        <th>Prorrateo</th>
+      </tr></thead>
+      <tbody id="instrBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Conversiones -->
+  <div id="convPanel" style="display:none;margin-top:12px">
+    <div class="panel">
+      <div class="pt"><i style="background:#f97316"></i>Conversiones (Sección B del Comunicado) — Canje sin integración de efectivo</div>
+      <div class="tw"><table id="convTable">
+        <thead><tr>
+          <th style="text-align:left">Opción</th>
+          <th style="text-align:left">Instrumento Nuevo</th>
+          <th>Tipo</th>
+          <th>Vencimiento</th>
+          <th>VNO Adj. (*)</th>
+          <th>VE Equiv. (*)</th>
+          <th>Precio Corte</th>
+          <th>TIREA</th>
+          <th style="text-align:left">Instrumento Rescatado</th>
+          <th>VNO Rescatado (*)</th>
+        </tr></thead>
+        <tbody id="convBody"></tbody>
+      </table></div>
+      <div class="src" id="convSrc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 1: ROLLOVER ══ -->
+<div class="tab-panel" id="tab1">
+  <div class="kpis">
+    <div class="kpi ca"><div class="kl">Total Adjudicado</div><div class="kv">$151.9bn</div><div class="ks">Suma VE pesos+DL · 16 lic.</div></div>
+    <div class="kpi cg"><div class="kl">Rollover promedio</div><div class="kv">116.1%</div><div class="ks">Prom. simple 16 lic.</div></div>
+    <div class="kpi cr"><div class="kl">Absorción neta acum.</div><div class="kv">+$15.1bn</div><div class="ks">4 inyecciones netas (lic.1, lic.4, lic.12 y lic.16)</div></div>
+    <div class="kpi cy"><div class="kl">HD Adj. acumulado</div><div class="kv">USD 3.717mn</div><div class="ks">TC $1.514,16 · Com. A3500 (26-ago-26) · lic.16 sin HD</div></div>
+    <div class="kpi cp"><div class="kl">Rollover acum. 2026</div><div class="kv">111.0%</div><div class="ks">Al 27-ago-26 · Σ$151.9bn adj. / Σ$136.8bn venc.</div></div>
+    <div class="kpi cpk"><div class="kl">Licitaciones >100%</div><div class="kv">12 / 16</div><div class="ks">4 con emisión neta</div></div>
+  </div>
+  <div class="g3">
+    <div class="panel"><div class="pt"><i class="ig"></i>Rollover por Licitación (%)</div><canvas id="cRollover"></canvas><div class="src">Verde >100% · Rojo &lt;100% · Fuentes: Ámbito, Infobae, Banco Provincia, comunicados Finanzas</div></div>
+    <div class="panel"><div class="pt"><i class="ia"></i>Rollover Acumulado 2026 (%)</div><canvas id="cRoAcum"></canvas><div class="src">Σ Adj. / Σ Vencimientos — acumulado licitación a licitación</div></div>
+    <div class="panel"><div class="pt"><i class="ir"></i>Absorción Neta por Licitación ($bn)</div><canvas id="cAbs"></canvas><div class="src">VE Adjudicado – Vencimientos enfrentados</div></div>
+  </div>
+  <div class="g3">
+    <div class="panel"><div class="pt"><i class="ia"></i>Rollover por Mes (%)</div><canvas id="cRoMes"></canvas><div class="src">Ponderado: Σ Adj. / Σ Vencimientos del mes</div></div>
+    <div class="panel"><div class="pt"><i class="ia"></i>Absorción Neta % M2 y MUSD</div><canvas id="cAbsM2"></canvas><div class="src">TC $1.474,74 (Com. A3500 14-jul-26) · M2 total estimado por fecha · lic.16 pend. M2 oficial de agosto</div></div>
+    <div class="panel">
+      <div class="pt"><i class="io"></i>Vencimientos en Pesos de Hoy (27-ago-26, $bn)</div>
+      <canvas id="cVencReal"></canvas>
+      <div class="src">Nominal ene–jul-26 llevado a precios de jul-26 (IPC oficial INDEC) ≈ hoy · lic.15 (12-ago) y lic.16 (27-ago) sin ajustar — diferencia de precios en esa ventana se considera despreciable</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: COMPOSICIÓN ══ -->
+<div class="tab-panel" id="tab2">
+  <div class="g2">
+    <div class="panel"><div class="pt"><i class="iy"></i>Composición por Tipo — % VE Adjudicado (pesos+DL)</div><canvas id="cMix" class="ct"></canvas><div class="leg"><div class="li"><div class="ld" style="background:#3b82f6"></div>Lecap</div><div class="li"><div class="ld" style="background:#22c55e"></div>CER</div><div class="li"><div class="ld" style="background:#eab308"></div>TAMAR</div><div class="li"><div class="ld" style="background:#f97316"></div>DL</div><div class="li"><div class="ld" style="background:#a855f7"></div>Dual</div></div></div>
+    <div class="panel"><div class="pt"><i class="ip"></i>WAM por Licitación (días)</div><canvas id="cWam" class="ct"></canvas><div class="leg"><div class="li"><div class="ld" style="background:#38bdf8"></div>WAM VE</div><div class="li"><div class="ld" style="background:#f97316"></div>WAM VNO (excl. DL)</div></div></div>
+  </div>
+  <div class="g1">
+    <div class="panel"><div class="pt"><i class="ia"></i>Índice de Concentración — Top 1 instrumento (% total)</div><canvas id="cConc"></canvas><div class="src">Share del instrumento más demandado por licitación</div>
+    <div id="concTopInstr" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#94a3b8"></div></div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: DEMANDA ══ -->
+<div class="tab-panel" id="tab3">
+  <div class="g3">
+    <div class="panel"><div class="pt"><i class="ia"></i>Bid-to-Cover Total (pesos+DL)</div><canvas id="cB2C"></canvas><div class="src">VE Ofertado / VE Adjudicado — excluye HD</div></div>
+    <div class="panel"><div class="pt"><i class="ir"></i>% Rechazado por Licitación</div><canvas id="cRech"></canvas><div class="src">1 – Adj/Ofertado · Mide selectividad del Tesoro</div></div>
+    <div class="panel"><div class="pt"><i class="ig"></i>Ofertado vs Adjudicado ($bn)</div><canvas id="cOfAdj"></canvas><div class="leg"><div class="li"><div class="ld" style="background:rgba(56,189,248,0.45)"></div>Ofertado</div><div class="li"><div class="ld" style="background:#10b981"></div>Adjudicado</div></div></div>
+  </div>
+</div>
+
+<!-- ══ TAB 4: HARD DOLLAR ══ -->
+<div class="tab-panel" id="tab4">
+  <div class="g3">
+    <div class="panel"><div class="pt"><i class="ipk"></i>HD Ofertado vs Adjudicado (MUSD)</div><canvas id="cHD"></canvas><div class="leg"><div class="li"><div class="ld" style="background:rgba(236,72,153,0.3)"></div>Ofertado</div><div class="li"><div class="ld" style="background:#ec4899"></div>Adjudicado</div></div></div>
+    <div class="panel"><div class="pt"><i class="ipk"></i>HD Adjudicado Acumulado (MUSD)</div><canvas id="cHDacum"></canvas></div>
+    <div class="panel"><div class="pt"><i class="ipk"></i>HD Adj. como % del Total Adjudicado</div><canvas id="cHDpct"></canvas><div class="src">HD VE (pesos al TC $1.474,74 · Com. A3500 14-jul-26) / Total VE adjudicado</div></div>
+  </div>
+</div>
+
+<!-- ══ TAB 5: TABLA RESUMEN ══ -->
+<div class="tab-panel active" id="tab5">
+  <div class="panel">
+    <div class="pt"><i class="ia"></i>Resumen Completo — todas las métricas</div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th>N°</th><th>Fecha</th><th>Venc</th><th>Adj</th><th>Of</th>
+        <th>Rollover</th><th>Ro Acum</th><th>Abs $bn</th><th>Abs %M2</th><th>Abs MUSD</th>
+        <th>B2C</th><th>WAM VE</th>
+        <th>Lecap</th><th>CER</th><th>TAMAR</th><th>DL</th><th>Dual</th>
+        <th>HD Adj</th>
+      </tr></thead>
+      <tbody id="tBody"></tbody>
+    </table></div>
+    <div class="src">Vencimientos inferidos de rollover reportado excepto lic. 10, 13, 15 y 16 (oficiales) · M2 estimado por fecha · TC $1.474,74 (Com. A3500 14-jul-26)</div>
+  </div>
+</div>
+
+<!-- ══ TAB 6: CALENDARIO ══ -->
+<div class="tab-panel" id="tab6">
+  <div class="cal-legend">
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#1e3a5f"></div>Llamado</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#14532d"></div>Licitación</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#374151"></div>Liquidación</div>
+  </div>
+  <div class="proximas">
+    <div class="prox-title">Próximas fechas</div>
+    <div id="proximasList"></div>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+
+<!-- ══ TAB 7: PERFIL DE VENCIMIENTOS ══ -->
+<div class="tab-panel" id="tab7">
+  <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi ca"><div class="kl">Total Adj. Acumulado</div><div class="kv">$151.9bn</div><div class="ks">VE pesos+DL · outstanding: $120.1bn (excl. Q1–Q2 ya vencidos)</div></div>
+    <div class="kpi cr"><div class="kl">Q3 '26 (vence pronto)</div><div class="kv">$30.4bn</div><div class="ks">25.3% del outstanding · +D30S6 lic.14/15</div></div>
+    <div class="kpi cp"><div class="kl">2027</div><div class="kv">$25.6bn</div><div class="ks">21.3% del outstanding · +S29E7/T31Y7/X29E7 lic.16</div></div>
+    <div class="kpi cg"><div class="kl">2028+</div><div class="kv">$39.4bn</div><div class="ks">32.8% del outstanding — sigue siendo el mayor bucket</div></div>
+  </div>
+  <div class="g2">
+    <div class="panel">
+      <div class="pt"><i class="ia"></i>Perfil de Vencimientos — VE Adjudicado por Período ($bn)</div>
+      <canvas id="cVencPerfil" style="max-height:300px"></canvas>
+      <div class="src">Del total adjudicado en pesos+DL ($151.9bn), ¿cuándo vence? Licitaciones regulares ene–ago 2026 (incl. lic.16, 27-ago) · Excluye HD · Q1'26 y Q2'26 ya vencidos</div>
+    </div>
+    <div class="panel">
+      <div class="pt"><i class="iy"></i>Composición por Tipo dentro de cada Período</div>
+      <canvas id="cVencTipo" style="max-height:300px"></canvas>
+      <div class="leg">
+        <div class="li"><div class="ld" style="background:#3b82f6"></div>Lecap</div>
+        <div class="li"><div class="ld" style="background:#22c55e"></div>CER</div>
+        <div class="li"><div class="ld" style="background:#eab308"></div>TAMAR</div>
+        <div class="li"><div class="ld" style="background:#f97316"></div>DL</div>
+        <div class="li"><div class="ld" style="background:#a855f7"></div>Dual</div>
+      </div>
+    </div>
+  </div>
+  <div class="g1">
+    <div class="panel">
+      <div class="pt"><i class="ig"></i>Acumulado de Vencimientos ($bn)</div>
+      <canvas id="cVencAcum" style="max-height:180px"></canvas>
+      <div class="src">Cuánto vence hasta cada período — excluye Q1'26 y Q2'26 (ya vencidos)</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ TAB 8: CONVERSIONES ══ -->
+<div class="tab-panel" id="tab8">
+  <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
+    <div class="kpi ca"><div class="kl">Total movido</div><div class="kv">$29.5bn</div><div class="ks">Solo pesos, excl. TZV26 USD</div></div>
+    <div class="kpi cr"><div class="kl">Mayor salida</div><div class="kv">Q4 '26</div><div class="ks">$20.6bn — TZXD6+TTD26</div></div>
+    <div class="kpi cg"><div class="kl">Mayor llegada</div><div class="kv">2028+</div><div class="ks">$28.3bn → extensión perfil</div></div>
+    <div class="kpi cy"><div class="kl">Licitaciones</div><div class="kv">5</div><div class="ks">12-mar, 27-mar, 15-abr, 28-abr, 10-jun · Lic.12, 13, 15 y 16 sin conversión</div></div>
+    <div class="kpi cp"><div class="kl">Instrumentos rescatados</div><div class="kv">8</div><div class="ks">+TTJ26 (lic.11) — Duales 2028-2030</div></div>
+  </div>
+  <div class="g2">
+    <div class="panel">
+      <div class="pt"><i class="ir"></i>Conversiones — Origen y Destino por Bucket ($bn)</div>
+      <canvas id="cConvFlow" style="max-height:300px"></canvas>
+      <div class="leg">
+        <div class="li"><div class="ld" style="background:#ef4444"></div>VE salió (vto. original rescatado)</div>
+        <div class="li"><div class="ld" style="background:#10b981"></div>VE llegó (nuevo instrumento emitido)</div>
+      </div>
+      <div class="src">Solo conversiones en pesos · Excluye TZV26→TZV28 (USD) · Total movido: $29.5bn · Fuente: Secretaría de Finanzas</div>
+    </div>
+    <div class="panel">
+      <div class="pt"><i class="ig"></i>Impacto neto por Bucket ($bn)</div>
+      <canvas id="cConvNeto" style="max-height:300px"></canvas>
+      <div class="src">Llegadas – Salidas · Verde = alivio de vencimientos · Rojo = carga adicional</div>
+    </div>
+  </div>
+  <div class="g1">
+    <div class="panel">
+      <div class="pt"><i class="ia"></i>Detalle por Conversión</div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th style="text-align:left">Licitación</th>
+          <th style="text-align:left">Opción</th>
+          <th style="text-align:left">Instr. Rescatado</th>
+          <th>Vto. Original</th>
+          <th>Bucket Origen</th>
+          <th>VNO Rescatado</th>
+          <th style="text-align:left">Instr. Nuevo</th>
+          <th>Vto. Nuevo</th>
+          <th>Bucket Destino</th>
+          <th>VE Equiv.</th>
+          <th>Precio Corte</th>
+          <th>TIREA</th>
+        </tr></thead>
+        <tbody id="convDetailBody"></tbody>
+      </table></div>
+      <div class="src">(*) Montos en millones de pesos salvo indicación · s/d = sin dato disponible en comunicado web</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────────
+const TC = 1474.7373;
+
+const D = [
+  {n:"2026-01",f:"14-ene",venc:9.56, adj:9.37, of:10.06,ro:0.98,   abs:-0.19,absM2:-0.35,b2c:1.07,rech:6.9, wve:160,wvno:158,conc:68.9,shares:{L:68.9,C:13.7,T:15.4,D:2.0,X:0},  hd_adj:128,hd_of:296,hd_pct:2.0, ro_acum:98.0, ofertas:4613},
+  {n:"2026-02",f:"28-ene",venc:8.34, adj:10.34,of:11.17,ro:1.24,   abs:2.00, absM2:3.45, b2c:1.08,rech:7.4, wve:178,wvno:148,conc:55.5,shares:{L:67.5,C:24.3,T:7.2, D:1.0,X:0},  hd_adj:73, hd_of:119,hd_pct:1.0, ro_acum:110.1,ofertas:7325},
+  {n:"2026-03",f:"11-feb",venc:7.33, adj:9.02, of:11.51,ro:1.23,   abs:1.69, absM2:2.82, b2c:1.28,rech:21.6,wve:152,wvno:129,conc:60.4,shares:{L:72.4,C:24.3,T:3.1, D:0.3,X:0},  hd_adj:19, hd_of:38, hd_pct:0.3, ro_acum:113.9,ofertas:9051},
+  {n:"2026-04",f:"25-feb",venc:7.22, adj:6.74, of:8.00, ro:0.9332, abs:-0.48,absM2:-0.77,b2c:1.19,rech:15.8,wve:194,wvno:146,conc:60.3,shares:{L:0,  C:97.8,T:0,   D:2.2,X:0},  hd_adj:150,hd_of:868,hd_pct:3.1, ro_acum:109.3,ofertas:3771},
+  {n:"2026-05",f:"12-mar",venc:9.64, adj:10.42,of:12.90,ro:1.0809, abs:0.78, absM2:1.2,  b2c:1.24,rech:19.2,wve:269,wvno:185,conc:26.3,shares:{L:25.1,C:62.8,T:9.7, D:2.3,X:0},  hd_adj:152,hd_of:440,hd_pct:2.0, ro_acum:109.0,ofertas:7680},
+  {n:"2026-06",f:"27-mar",venc:7.94, adj:11.04,of:12.53,ro:1.39,   abs:3.10, absM2:4.63, b2c:1.13,rech:11.9,wve:565,wvno:591,conc:43.2,shares:{L:24.9,C:53.6,T:19.1,D:2.4,X:0},  hd_adj:294,hd_of:689,hd_pct:3.6, ro_acum:113.8,ofertas:4119},
+  {n:"2026-07",f:"15-abr",venc:8.30, adj:9.92, of:11.80,ro:1.195,  abs:1.62, absM2:2.31, b2c:1.19,rech:15.9,wve:407,wvno:409,conc:44.8,shares:{L:44.8,C:21.9,T:28.1,D:5.2,X:0},  hd_adj:296,hd_of:741,hd_pct:4.1, ro_acum:114.6,ofertas:4733},
+  {n:"2026-08",f:"28-abr",venc:7.95, adj:8.11, of:9.19, ro:1.02,   abs:0.16, absM2:0.22, b2c:1.13,rech:11.8,wve:434,wvno:469,conc:60.9,shares:{L:60.9,C:12.8,T:12.7,D:2.0,X:11.7},hd_adj:686,hd_of:759,hd_pct:12.0,ro_acum:113.1,ofertas:3631},
+  {n:"2026-09",f:"13-may",venc:9.74, adj:10.71,of:14.40,ro:1.10,   abs:0.97, absM2:1.21, b2c:1.34,rech:25.6,wve:533,wvno:597,conc:43.8,shares:{L:41.8,C:9.0, T:0,   D:5.4,X:43.8},hd_adj:295,hd_of:538,hd_pct:3.8, ro_acum:112.7,ofertas:6058},
+  {n:"2026-10",f:"27-may",venc:10.99,adj:12.57,of:16.14,ro:1.1436, abs:1.58, absM2:1.90, b2c:1.28,rech:22.1,wve:387,wvno:420,conc:41.0,shares:{L:41.0,C:14.6,T:29.9,D:14.4,X:0},  hd_adj:350,hd_of:629,hd_pct:3.9, ro_acum:112.9,ofertas:4931},
+  {n:"2026-11",f:"10-jun",venc:5.08, adj:6.12, of:7.40, ro:1.2042, abs:1.04, absM2:1.22, b2c:1.21,rech:17.3,wve:940,wvno:0,  conc:71.6,shares:{L:0,  C:1.9,  T:0,  D:26.5,X:71.6},hd_adj:191,hd_of:254,hd_pct:4.5, ro_acum:113.3,ofertas:3403},
+  {n:"2026-12",f:"26-jun",venc:16.27,adj:13.22,of:14.93,ro:0.8124, abs:-3.05,absM2:-3.30,b2c:1.13,rech:11.5,wve:618,wvno:620, conc:31.6,shares:{L:31.6,C:16.3,T:18.4,D:5.2, X:28.5},hd_adj:257,hd_of:527,hd_pct:2.9, ro_acum:108.5,ofertas:0},
+  {n:"2026-13",f:"15-jul",venc:2.97, adj:5.44, of:8.45, ro:1.8312, abs:2.47, absM2:2.67, b2c:1.55,rech:35.7,wve:360,wvno:388, conc:43.8,shares:{L:43.8,C:19.8,T:11.5,D:24.8,X:0},   hd_adj:470,hd_of:985,hd_pct:11.3,ro_acum:110.5,ofertas:2938},
+  {n:"2026-14",f:"29-jul",venc:8.40, adj:12.21,of:13.98,ro:1.4530, abs:3.81, absM2:4.38, b2c:1.15,rech:12.7,wve:326,wvno:214, conc:38.7,shares:{L:37.8,C:0,   T:0,   D:16.4,X:45.8},hd_adj:309,hd_of:348,hd_pct:3.7, ro_acum:112.9,ofertas:6098},
+  {n:"2026-15",f:"12-ago",venc:4.48, adj:4.49, of:6.49, ro:1.0026, abs:0.01, absM2:0.01, b2c:1.44,rech:30.7,wve:111,wvno:111, conc:73.2,shares:{L:73.2,C:14.4,T:0,   D:12.4,X:0},   hd_adj:47, hd_of:67, hd_pct:1.5, ro_acum:112.5,ofertas:5077},
+  {n:"2026-16",f:"27-ago",venc:12.60, adj:12.16, of:13.18,ro:0.9655,   abs:-0.44, absM2:null, b2c:1.08,rech:7.70,wve:142,wvno:null, conc:50.0,shares:{L:89.7,C:6.9, T:0,   D:3.4, X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:111.0, ofertas:4610},
+];
+const D_TABLA = [D[D.length-1], ...D.slice(0, D.length-1)];
+
+const INSTRS = {
+  0:[
+    {t:"S27F6",d:"Lecap – vto 27-feb-26",tp:"Lecap",nr:"Reap.",v:"27/02/2026",p:44,  vno_of:"2.377.458",vno_adj:"2.370.218",ve_adj:"2.849.950",circ:"13.197.356",sh:"43.5%",tasa:"3.39%",tt:"TEM",  pc:"1202.40",tirea:"49.16%",pror:"—"},
+    {t:"S29Y6",d:"Lecap – vto 29-may-26",tp:"Lecap",nr:"Reap.",v:"29/05/2026",p:135, vno_of:"2.573.454",vno_adj:"2.538.372",ve_adj:"2.958.472",circ:"8.583.266", sh:"45.2%",tasa:"2.86%",tt:"TEM",  pc:"1165.50",tirea:"40.19%",pror:"—"},
+    {t:"S30N6",d:"Lecap – vto 30-nov-26",tp:"Lecap",nr:"Reap.",v:"30/11/2026",p:320, vno_of:"265.072",  vno_adj:"259.350",  ve_adj:"259.998",  circ:"1.662.234", sh:"4.0%", tasa:"2.51%",tt:"TEM",  pc:"1002.50",tirea:"34.57%",pror:"—"},
+    {t:"T30J7",d:"Boncap – vto 30-jun-27",tp:"Lecap",nr:"Nueva",v:"30/06/2027",p:532, vno_of:"552.698",  vno_adj:"384.242",  ve_adj:"384.242",  circ:"384.242",   sh:"5.9%", tasa:"2.58%",tt:"TEM",  pc:"—",      tirea:"35.75%",pror:"—"},
+    {t:"X29Y6",d:"CER – vto 29-may-26",  tp:"CER",  nr:"Reap.",v:"29/05/2026",p:135, vno_of:"976.803",  vno_adj:"932.876",  ve_adj:"946.403",  circ:"3.289.270", sh:"14.5%",tasa:"—",    tt:"CER+", pc:"1014.50",tirea:"6.92%", pror:"—"},
+    {t:"X30N6",d:"CER – vto 30-nov-26",  tp:"CER",  nr:"Reap.",v:"30/11/2026",p:320, vno_of:"118.224",  vno_adj:"98.472",   ve_adj:"95.341",   circ:"3.459.567", sh:"1.5%", tasa:"—",    tt:"CER+", pc:"968.20", tirea:"7.06%", pror:"—"},
+    {t:"TZX27",d:"CER – vto 30-jun-27",  tp:"CER",  nr:"Reap.",v:"30/06/2027",p:532, vno_of:"30.609",   vno_adj:"27.311",   ve_adj:"83.519",   circ:"2.590.886", sh:"1.3%", tasa:"—",    tt:"CER+", pc:"3058.00",tirea:"7.18%", pror:"—"},
+    {t:"TZX28",d:"CER – vto 30-jun-28",  tp:"CER",  nr:"Reap.",v:"30/06/2028",p:897, vno_of:"67.888",   vno_adj:"58.147",   ve_adj:"161.649",  circ:"5.758.477", sh:"2.5%", tasa:"—",    tt:"CER+", pc:"2780.00",tirea:"8.32%", pror:"—"},
+    {t:"M31G6",d:"TAMAR – vto 31-ago-26",tp:"TAMAR",nr:"Reap.",v:"31/08/2026",p:229, vno_of:"1.416.780",vno_adj:"1.354.734",ve_adj:"1.445.501",circ:"5.108.162", sh:"22.1%",tasa:"—",    tt:"TAMAR+",pc:"1067.00",tirea:"44.50%",pror:"—"},
+    {t:"D27F6",d:"DL – vto 27-feb-26",   tp:"DL",   nr:"Nueva",v:"27/02/2026",p:44,  vno_of:"231",       vno_adj:"128",       ve_adj:"185.500",  circ:"128",       sh:"—",    tasa:"9.23%",tt:"TNA",  pc:"990.00", tirea:"9.23%", pror:"—"},
+  ],
+  1:[
+    {t:"S16M6",d:"Lecap – vto 16-mar-26",tp:"Lecap",nr:"Nueva",v:"16/03/2026",p:47, vno_of:"5.002.892",vno_adj:"4.913.730",ve_adj:"4.913.730",circ:"4.913.730",sh:"51.0%",tasa:"2.99%",tt:"TEM",pc:"—",tirea:"42.41%",pror:"—"},
+    {t:"S31L6",d:"Lecap – vto 31-jul-26",tp:"Lecap",nr:"Nueva",v:"31/07/2026",p:184,vno_of:"1.958.228",vno_adj:"1.844.892",ve_adj:"1.844.892",circ:"1.844.892",sh:"19.2%",tasa:"2.75%",tt:"TEM",pc:"—",tirea:"38.48%",pror:"—"},
+    {t:"S30N6",d:"Lecap – vto 30-nov-26",tp:"Lecap",nr:"Reap.",v:"30/11/2026",p:306,vno_of:"70.207",vno_adj:"35.803",ve_adj:"36.161",circ:"1.698.037",sh:"0.4%",tasa:"2.55%",tt:"TEM",pc:"1010.00",tirea:"35.24%",pror:"—"},
+    {t:"T15E7",d:"Boncap – vto 15-ene-27",tp:"Lecap",nr:"Reap.",v:"15/01/2027",p:352,vno_of:"303.502",vno_adj:"153.664",ve_adj:"186.394",circ:"4.538.875",sh:"1.9%",tasa:"2.50%",tt:"TEM",pc:"1213.00",tirea:"34.46%",pror:"—"},
+    {t:"X31L6",d:"CER – vto 31-jul-26",tp:"CER",nr:"Nueva",v:"31/07/2026",p:184,vno_of:"587.150",vno_adj:"457.889",ve_adj:"440.947",circ:"457.889",sh:"4.6%",tasa:"—",tt:"CER+",pc:"963.00",tirea:"7.83%",pror:"—"},
+    {t:"X30N6",d:"CER – vto 30-nov-26",tp:"CER",nr:"Reap.",v:"30/11/2026",p:306,vno_of:"1.168.300",vno_adj:"1.098.142",ve_adj:"1.067.394",circ:"4.557.709",sh:"11.1%",tasa:"—",tt:"CER+",pc:"972.00",tirea:"8.35%",pror:"—"},
+    {t:"TZX27",d:"CER – vto 30-jun-27",tp:"CER",nr:"Reap.",v:"30/06/2027",p:518,vno_of:"255.944",vno_adj:"241.714",ve_adj:"740.229",circ:"2.832.600",sh:"7.7%",tasa:"—",tt:"CER+",pc:"3062.42",tirea:"8.13%",pror:"—"},
+    {t:"TZX28",d:"CER – vto 30-jun-28",tp:"CER",nr:"Reap.",v:"30/06/2028",p:883,vno_of:"119.007",vno_adj:"93.207",ve_adj:"260.375",circ:"5.851.684",sh:"2.7%",tasa:"—",tt:"CER+",pc:"2793.50",tirea:"8.75%",pror:"—"},
+    {t:"M31G6",d:"TAMAR – vto 31-ago-26",tp:"TAMAR",nr:"Reap.",v:"31/08/2026",p:215,vno_of:"714.120",vno_adj:"690.552",ve_adj:"745.796",circ:"5.798.713",sh:"7.8%",tasa:"—",tt:"TAMAR+",pc:"1080.00",tirea:"52.90%",pror:"—"},
+    {t:"D30A6",d:"DL – vto 30-abr-26",tp:"DL",nr:"Reap.",v:"30/04/2026",p:92,vno_of:"119",vno_adj:"72",ve_adj:"102.935",circ:"2.255",sh:"—",tasa:"6.02%",tt:"TNA",pc:"985.50",tirea:"6.02%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:639,vno_of:"119",vno_adj:"73",ve_adj:"USD 73mn",circ:"—",sh:"N/A",tasa:"—",tt:"TNA",pc:"—",tirea:"—",pror:"—"},
+  ],
+  2:[
+    {t:"S17A6",d:"Lecap – vto 17-abr-26",tp:"Lecap",nr:"Reap.",v:"17/04/2026",p:65,vno_of:"6.442.764",vno_adj:"4.843.498",ve_adj:"5.027.551",circ:"7.564.747",sh:"60.4%",tasa:"2.81%",tt:"TEM",pc:"1038.00",tirea:"39.48%",pror:"—"},
+    {t:"S31L6",d:"Lecap – vto 31-jul-26",tp:"Lecap",nr:"Reap.",v:"31/07/2026",p:170,vno_of:"1.085.428",vno_adj:"899.357",ve_adj:"909.610",circ:"2.744.249",sh:"10.9%",tasa:"2.74%",tt:"TEM",pc:"1011.40",tirea:"38.34%",pror:"—"},
+    {t:"S30N6",d:"Lecap – vto 30-nov-26",tp:"Lecap",nr:"Reap.",v:"30/11/2026",p:292,vno_of:"137.813",vno_adj:"86.628",ve_adj:"87.970",circ:"1.784.665",sh:"1.1%",tasa:"2.61%",tt:"TEM",pc:"1015.50",tirea:"36.17%",pror:"—"},
+    {t:"T15E7",d:"Boncap – vto 15-ene-27",tp:"Lecap",nr:"Reap.",v:"15/01/2027",p:338,vno_of:"522.774",vno_adj:"424.290",ve_adj:"507.027",circ:"4.963.166",sh:"6.1%",tasa:"2.74%",tt:"TEM",pc:"1195.00",tirea:"38.25%",pror:"—"},
+    {t:"TZX26",d:"CER – vto 30-jun-26",tp:"CER",nr:"Reap.",v:"30/06/2026",p:139,vno_of:"357.574",vno_adj:"294.370",ve_adj:"1.000.858",circ:"2.448.163",sh:"12.0%",tasa:"—",tt:"CER+",pc:"3400.00",tirea:"5.02%",pror:"—"},
+    {t:"TZXD6",d:"CER – vto 15-dic-26",tp:"CER",nr:"Reap.",v:"15/12/2026",p:307,vno_of:"432.398",vno_adj:"399.285",ve_adj:"959.083",circ:"14.822.018",sh:"11.5%",tasa:"—",tt:"CER+",pc:"2402.00",tirea:"7.94%",pror:"—"},
+    {t:"TZX27",d:"CER – vto 30-jun-27",tp:"CER",nr:"Reap.",v:"30/06/2027",p:504,vno_of:"32.547",vno_adj:"26.563",ve_adj:"83.409",circ:"2.859.163",sh:"1.0%",tasa:"—",tt:"CER+",pc:"3140.00",tirea:"7.37%",pror:"—"},
+    {t:"TZX28",d:"CER – vto 30-jun-28",tp:"CER",nr:"Reap.",v:"30/06/2028",p:869,vno_of:"64.096",vno_adj:"51.136",ve_adj:"145.483",circ:"5.902.820",sh:"1.7%",tasa:"—",tt:"CER+",pc:"2845.00",tirea:"8.62%",pror:"—"},
+    {t:"M31G6",d:"TAMAR – vto 31-ago-26",tp:"TAMAR",nr:"Reap.",v:"31/08/2026",p:201,vno_of:"113.098",vno_adj:"85.284",ve_adj:"94.313",circ:"5.883.997",sh:"1.1%",tasa:"—",tt:"TAMAR+",pc:"1105.88",tirea:"43.55%",pror:"—"},
+    {t:"TMF27",d:"TAMAR – vto 26-feb-27",tp:"TAMAR",nr:"Nueva",v:"26/02/2027",p:380,vno_of:"226.127",vno_adj:"181.927",ve_adj:"181.927",circ:"181.927",sh:"2.2%",tasa:"6.50%",tt:"TAMAR+",pc:"—",tirea:"46.53%",pror:"—"},
+    {t:"D30A6",d:"DL – vto 30-abr-26",tp:"DL",nr:"Reap.",v:"30/04/2026",p:78,vno_of:"38",vno_adj:"19",ve_adj:"26.889",circ:"2.274",sh:"—",tasa:"4.81%",tt:"TNA",pc:"990.00",tirea:"4.81%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Nueva",v:"29/10/2027",p:620,vno_of:"38",vno_adj:"19",ve_adj:"USD 19mn",circ:"—",sh:"N/A",tasa:"—",tt:"TNA",pc:"—",tirea:"—",pror:"—"},
+  ],
+  3:[
+    {t:"X15Y6",d:"CER – vto 15-may-26",tp:"CER",nr:"Nueva",v:"15/05/2026",p:79,vno_of:"4.438.813",vno_adj:"3.835.132",ve_adj:"3.819.408",circ:"3.835.132",sh:"60.3%",tasa:"—",tt:"CER+",pc:"995.90",tirea:"1.91%",pror:"—"},
+    {t:"X31L6",d:"CER – vto 31-jul-26",tp:"CER",nr:"Reap.",v:"31/07/2026",p:156,vno_of:"1.084.817",vno_adj:"952.268",ve_adj:"954.172",circ:"1.410.157",sh:"15.1%",tasa:"—",tt:"CER+",pc:"1002.00",tirea:"5.06%",pror:"—"},
+    {t:"X30N6",d:"CER – vto 30-nov-26",tp:"CER",nr:"Reap.",v:"30/11/2026",p:278,vno_of:"1.033.194",vno_adj:"891.332",ve_adj:"900.691",circ:"5.449.041",sh:"14.2%",tasa:"—",tt:"CER+",pc:"1010.50",tirea:"6.99%",pror:"—"},
+    {t:"TZX27",d:"CER – vto 30-jun-27",tp:"CER",nr:"Reap.",v:"30/06/2027",p:490,vno_of:"235.911",vno_adj:"219.349",ve_adj:"699.722",circ:"3.078.512",sh:"11.0%",tasa:"—",tt:"CER+",pc:"3190.00",tirea:"7.19%",pror:"—"},
+    {t:"TZX28",d:"CER – vto 30-jun-28",tp:"CER",nr:"Reap.",v:"30/06/2028",p:855,vno_of:"78.353",vno_adj:"77.302",ve_adj:"222.244",circ:"5.980.123",sh:"3.5%",tasa:"—",tt:"CER+",pc:"2875.00",tirea:"8.78%",pror:"—"},
+    {t:"TZV27",d:"DL – vto 30-jun-27",tp:"DL",nr:"Nueva",v:"30/06/2027",p:490,vno_of:"168",vno_adj:"118",ve_adj:"147.335",circ:"118",sh:"—",tasa:"7.81%",tt:"TNA",pc:"904.00",tirea:"7.81%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Nueva",v:"29/10/2027",p:611,vno_of:"868",vno_adj:"150",ve_adj:"USD 150mn",circ:"150",sh:"N/A",tasa:"5.74%",tt:"TNA",pc:"1004.50",tirea:"5.89%",pror:"85.69%"},
+  ],
+  4:[
+    {t:"S15Y6",d:"Lecap – vto 15-may-26",tp:"Lecap",nr:"Nueva",v:"15/05/2026",p:64,vno_of:"2.365.725",vno_adj:"2.209.319",ve_adj:"2.209.319",circ:"2.209.319",sh:"26.3%",tasa:"2.60%",tt:"TEM",pc:"—",tirea:"36.07%",pror:"—"},
+    {t:"S30S6",d:"Lecap – vto 30-sep-26",tp:"Lecap",nr:"Nueva",v:"30/09/2026",p:202,vno_of:"538.339",vno_adj:"407.370",ve_adj:"407.370",circ:"407.370",sh:"4.8%",tasa:"2.53%",tt:"TEM",pc:"—",tirea:"34.96%",pror:"—"},
+    {t:"X15Y6",d:"CER – vto 15-may-26",tp:"CER",nr:"Reap.",v:"15/05/2026",p:64,vno_of:"3.235.694",vno_adj:"2.686.816",ve_adj:"2.736.496",circ:"6.521.949",sh:"32.6%",tasa:"—",tt:"CER+",pc:"1018.49",tirea:"0.37%",pror:"—"},
+    {t:"X30S6",d:"CER – vto 30-sep-26",tp:"CER",nr:"Nueva",v:"30/09/2026",p:202,vno_of:"1.481.567",vno_adj:"1.117.884",ve_adj:"1.088.361",circ:"1.117.884",sh:"13.0%",tasa:"—",tt:"CER+",pc:"973.59",tirea:"5.09%",pror:"—"},
+    {t:"TZXM7",d:"CER – vto 31-mar-27",tp:"CER",nr:"Reap.",v:"31/03/2027",p:384,vno_of:"640.192",vno_adj:"462.797",ve_adj:"854.554",circ:"2.059.786",sh:"10.2%",tasa:"—",tt:"CER+",pc:"1846.50",tirea:"6.87%",pror:"—"},
+    {t:"TZX28",d:"CER – vto 30-jun-28",tp:"CER",nr:"Reap.",v:"30/06/2028",p:840,vno_of:"826.006",vno_adj:"632.972",ve_adj:"1.865.685",circ:"6.613.094",sh:"22.2%",tasa:"—",tt:"CER+",pc:"2947.50",tirea:"8.70%",pror:"—"},
+    {t:"M31G6",d:"TAMAR – vto 31-ago-26",tp:"TAMAR",nr:"Reap.",v:"31/08/2026",p:172,vno_of:"660.192",vno_adj:"515.752",ve_adj:"593.373",circ:"6.399.749",sh:"7.1%",tasa:"—",tt:"TAMAR+",pc:"1150.50",tirea:"39.83%",pror:"—"},
+    {t:"TMF27",d:"TAMAR – vto 26-feb-27",tp:"TAMAR",nr:"Nueva",v:"26/02/2027",p:351,vno_of:"463.878",vno_adj:"397.418",ve_adj:"418.481",circ:"579.345",sh:"5.0%",tasa:"6.00%",tt:"TAMAR+",pc:"1053.00",tirea:"42.16%",pror:"—"},
+    {t:"D30A6",d:"DL – vto 30-abr-26",tp:"DL",nr:"Reap.",v:"30/04/2026",p:49,vno_of:"108",vno_adj:"59",ve_adj:"81.980",circ:"3.888",sh:"—",tasa:"6.35%",tt:"TNA",pc:"992.50",tirea:"6.35%",pror:"—"},
+    {t:"D30S6",d:"DL – vto 30-sep-26",tp:"DL",nr:"Nueva",v:"30/09/2026",p:202,vno_of:"162",vno_adj:"120",ve_adj:"162.533",circ:"120",sh:"—",tasa:"5.13%",tt:"TNA",pc:"973.40",tirea:"5.13%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:597,vno_of:"436",vno_adj:"150",ve_adj:"USD 150mn",circ:"400",sh:"N/A",tasa:"5.45%",tt:"TNA",pc:"1011.98",tirea:"5.59%",pror:"71.82%"},
+  ],
+  5:[
+    {t:"S17L6",d:"Lecap – vto 17-jul-26",tp:"Lecap",nr:"Nueva",v:"17/07/2026",p:111,vno_of:"3.696.659",vno_adj:"2.751.779",ve_adj:"2.751.779",circ:"2.751.779",sh:"24.9%",tasa:"2.16%",tt:"TEM",pc:"—",tirea:"29.23%",pror:"—"},
+    {t:"TZXS7",d:"CER – vto 30-sep-27",tp:"CER",nr:"Nueva",v:"30/09/2027",p:552,vno_of:"1.536.050",vno_adj:"1.218.541",ve_adj:"1.141.163",circ:"1.218.541",sh:"10.3%",tasa:"—",tt:"CER+",pc:"936.50",tirea:"4.47%",pror:"—"},
+    {t:"TZXS8",d:"CER – vto 29-sep-28",tp:"CER",nr:"Nueva",v:"29/09/2028",p:917,vno_of:"5.767.746",vno_adj:"5.757.084",ve_adj:"4.778.379",circ:"5.757.083",sh:"43.3%",tasa:"—",tt:"CER+",pc:"830.00",tirea:"7.75%",pror:"—"},
+    {t:"TMF27",d:"TAMAR – vto 26-feb-27",tp:"TAMAR",nr:"Reap.",v:"26/02/2027",p:336,vno_of:"2.081.584",vno_adj:"1.978.634",ve_adj:"2.108.234",circ:"2.557.979",sh:"19.1%",tasa:"6.00%",tt:"TAMAR+",pc:"1065.50",tirea:"37.18%",pror:"—"},
+    {t:"TZV28",d:"DL – vto 30-jun-28",tp:"DL",nr:"Nueva",v:"30/06/2028",p:826,vno_of:"282",vno_adj:"230",ve_adj:"263.067",circ:"230",sh:"—",tasa:"8.46%",tt:"TNA",pc:"833.00",tirea:"8.46%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:582,vno_of:"466",vno_adj:"150",ve_adj:"USD 150mn",circ:"650",sh:"N/A",tasa:"5.00%",tt:"TNA",pc:"1015.33",tirea:"5.12%",pror:"33.52%"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Nueva",v:"31/10/2028",p:949,vno_of:"227",vno_adj:"150",ve_adj:"USD 141mn",circ:"150",sh:"N/A",tasa:"8.52%",tt:"TNA",pc:"942.00",tirea:"8.86%",pror:"51.30%"},
+  ],
+  6:[
+    {t:"S14G6",d:"Lecap – vto 14-ago-26",tp:"Lecap",nr:"Nueva",v:"14/08/2026",p:121,vno_of:"5.939.520",vno_adj:"4.447.234",ve_adj:"4.447.234",circ:"4.447.234",sh:"44.8%",tasa:"2.00%",tt:"TEM",pc:"—",tirea:"26.82%",pror:"—"},
+    {t:"TZXS8",d:"CER – vto 29-sep-28",tp:"CER",nr:"Reap.",v:"29/09/2028",p:898,vno_of:"1.949.048",vno_adj:"1.931.248",ve_adj:"1.642.719",circ:"7.688.331",sh:"16.6%",tasa:"—",tt:"CER+",pc:"850.60",tirea:"7.60%",pror:"—"},
+    {t:"TZXM9",d:"CER – vto 28-mar-29",tp:"CER",nr:"Reap.",v:"28/03/2029",p:1078,vno_of:"662.207",vno_adj:"652.007",ve_adj:"528.126",circ:"906.835",sh:"5.3%",tasa:"—",tt:"CER+",pc:"810.00",tirea:"7.95%",pror:"—"},
+    {t:"TMF27",d:"TAMAR – vto 26-feb-27",tp:"TAMAR",nr:"Reap.",v:"26/02/2027",p:317,vno_of:"1.979.741",vno_adj:"1.833.543",ve_adj:"1.980.227",circ:"4.391.522",sh:"19.9%",tasa:"6.00%",tt:"TAMAR+",pc:"1080.00",tirea:"33.33%",pror:"—"},
+    {t:"TMG27",d:"TAMAR – vto 31-ago-27",tp:"TAMAR",nr:"Reap.",v:"31/08/2027",p:503,vno_of:"896.766",vno_adj:"779.066",ve_adj:"802.438",circ:"1.950.739",sh:"8.1%",tasa:"6.00%",tt:"TAMAR+",pc:"1030.00",tirea:"33.15%",pror:"—"},
+    {t:"TZV28",d:"DL – vto 30-jun-28",tp:"DL",nr:"Reap.",v:"30/06/2028",p:807,vno_of:"458",vno_adj:"458",ve_adj:"519.565",circ:"688",sh:"—",tasa:"8.50%",tt:"TNA",pc:"835.50",tirea:"8.50%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:563,vno_of:"571",vno_adj:"150",ve_adj:"USD 153mn",circ:"895",sh:"N/A",tasa:"5.00%",tt:"TNA",pc:"1017.72",tirea:"5.12%",pror:"25.52%"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Reap.",v:"31/10/2028",p:930,vno_of:"166",vno_adj:"150",ve_adj:"USD 143mn",circ:"336",sh:"N/A",tasa:"8.20%",tt:"TNA",pc:"952.75",tirea:"8.51%",pror:"10.27%"},
+  ],
+  7:[
+    {t:"S12J6",d:"Lecap – vto 12-jun-26",tp:"Lecap",nr:"Nueva",v:"12/06/2026",p:45,vno_of:"5.422.043",vno_adj:"4.937.002",ve_adj:"4.937.002",circ:"4.937.002",sh:"60.9%",tasa:"2.10%",tt:"TEM",pc:"—",tirea:"28.32%",pror:"—"},
+    {t:"TZXS8",d:"CER – vto 29-sep-28",tp:"CER",nr:"Reap.",v:"29/09/2028",p:885,vno_of:"1.354.169",vno_adj:"1.220.149",ve_adj:"1.036.517",circ:"8.908.480",sh:"12.8%",tasa:"—",tt:"CER+",pc:"849.50",tirea:"8.41%",pror:"—"},
+    {t:"TMG28",d:"TAMAR – vto 31-ago-28",tp:"TAMAR",nr:"Nueva",v:"31/08/2028",p:1221,vno_of:"1.133.617",vno_adj:"1.026.517",ve_adj:"1.026.517",circ:"1.026.516",sh:"12.7%",tasa:"6.90%",tt:"TAMAR+",pc:"—",tirea:"33.61%",pror:"—"},
+    {t:"TXMJ9",d:"Dual CER/TAMAR – jun-29",tp:"Dual",nr:"Nueva",v:"29/06/2029",p:1158,vno_of:"1.380.367",vno_adj:"1.186.483",ve_adj:"949.186",circ:"1.186.483",sh:"11.7%",tasa:"—",tt:"Dual",pc:"800.00",tirea:"7.31%",pror:"—"},
+    {t:"D30S6",d:"DL – vto 30-sep-26",tp:"DL",nr:"Reap.",v:"30/09/2026",p:155,vno_of:"187",vno_adj:"114",ve_adj:"159.843",circ:"846",sh:"—",tasa:"2.52%",tt:"TNA",pc:"989.70",tirea:"2.52%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:548,vno_of:"373",vno_adj:"350",ve_adj:"USD 355mn",circ:"1.345",sh:"N/A",tasa:"5.04%",tt:"TNA",pc:"1014.00",tirea:"5.16%",pror:"44.39%"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Reap.",v:"31/10/2028",p:916,vno_of:"401",vno_adj:"350",ve_adj:"USD 331mn",circ:"786",sh:"N/A",tasa:"8.44%",tt:"TNA",pc:"945.51",tirea:"8.77%",pror:"99.97%"},
+  ],
+  8:[
+    {t:"S30S6",d:"Lecap – vto 30-sep-26",tp:"Lecap",nr:"Reap.",v:"30/09/2026",p:140,vno_of:"4.362.667",vno_adj:"4.184.488",ve_adj:"4.481.586",circ:"4.591.857",sh:"41.8%",tasa:"2.09%",tt:"TEM",pc:"1071.00",tirea:"28.14%",pror:"—"},
+    {t:"TZXY7",d:"CER – vto 31-may-27",tp:"CER",nr:"Reap.",v:"31/05/2027",p:383,vno_of:"310.201",vno_adj:"216.305",ve_adj:"244.641",circ:"3.371.027",sh:"2.3%",tasa:"—",tt:"CER+",pc:"1131.00",tirea:"1.54%",pror:"—"},
+    {t:"TZXS7",d:"CER – vto 30-sep-27",tp:"CER",nr:"Reap.",v:"30/09/2027",p:505,vno_of:"1.223.882",vno_adj:"732.329",ve_adj:"717.683",circ:"1.950.870",sh:"6.7%",tasa:"—",tt:"CER+",pc:"980.00",tirea:"5.04%",pror:"—"},
+    {t:"TXMJ8",d:"Dual CER/TAMAR – jun-28",tp:"Dual",nr:"Nueva",v:"30/06/2028",p:778,vno_of:"4.901.738",vno_adj:"2.434.341",ve_adj:"2.239.594",circ:"2.434.341",sh:"20.9%",tasa:"—",tt:"Dual",pc:"920.00",tirea:"4.00%",pror:"—"},
+    {t:"TXMJ9",d:"Dual CER/TAMAR – jun-29",tp:"Dual",nr:"Reap.",v:"29/06/2029",p:1143,vno_of:"3.521.021",vno_adj:"2.909.319",ve_adj:"2.449.647",circ:"4.095.802",sh:"22.9%",tasa:"—",tt:"Dual",pc:"842.00",tirea:"6.19%",pror:"—"},
+    {t:"D30S6",d:"DL – vto 30-sep-26",tp:"DL",nr:"Reap.",v:"30/09/2026",p:140,vno_of:"492",vno_adj:"425",ve_adj:"577.908",circ:"1.271",sh:"—",tasa:"5.11%",tt:"TNA",pc:"981.50",tirea:"5.11%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:533,vno_of:"279",vno_adj:"150",ve_adj:"USD 152mn",circ:"1.595",sh:"N/A",tasa:"5.00%",tt:"TNA",pc:"1016.66",tirea:"5.12%",pror:"56.76%"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Reap.",v:"31/10/2028",p:901,vno_of:"267",vno_adj:"150",ve_adj:"USD 143mn",circ:"984",sh:"N/A",tasa:"8.24%",tt:"TNA",pc:"953.00",tirea:"8.55%",pror:"70.50%"},
+  ],
+  9:[
+    {t:"S15S6",d:"Lecap – vto 15-sep-26",tp:"Lecap",nr:"Nueva",v:"15/09/2026",p:111,vno_of:"6.998.506",vno_adj:"5.156.402",ve_adj:"5.156.402",circ:"5.156.402",sh:"41.0%",tasa:"1.99%",tt:"TEM",pc:"—",tirea:"26.68%",pror:"—"},
+    {t:"TZXM7",d:"CER – vto 31-mar-27",tp:"CER",nr:"Reap.",v:"31/03/2027",p:308,vno_of:"424.208",vno_adj:"255.299",ve_adj:"535.120",circ:"1.998.424",sh:"4.3%",tasa:"—",tt:"CER+",pc:"2096.05",tirea:"2.00%",pror:"—"},
+    {t:"TZXS7",d:"CER – vto 30-sep-27",tp:"CER",nr:"Reap.",v:"30/09/2027",p:491,vno_of:"1.675.691",vno_adj:"1.308.333",ve_adj:"1.304.408",circ:"3.259.203",sh:"10.4%",tasa:"—",tt:"CER+",pc:"997.00",tirea:"5.06%",pror:"—"},
+    {t:"TMG28",d:"TAMAR – vto 31-ago-28",tp:"TAMAR",nr:"Reap.",v:"31/08/2028",p:827,vno_of:"4.392.235",vno_adj:"3.762.842",ve_adj:"3.762.842",circ:"4.789.359",sh:"29.9%",tasa:"TAMAR+793pb",tt:"TAMAR+",pc:"1000.00",tirea:"35.53%",pror:"—"},
+    {t:"D31L6",d:"DL – vto 31-jul-26",tp:"DL",nr:"Nueva",v:"31/07/2026",p:65,vno_of:"554",vno_adj:"538",ve_adj:"749.518",circ:"538",sh:"6.0%",tasa:"6.01%",tt:"TNA",pc:"990.00",tirea:"6.01%",pror:"—"},
+    {t:"D31M7",d:"DL – vto 31-mar-27",tp:"DL",nr:"Nueva",v:"31/03/2027",p:308,vno_of:"1.009",vno_adj:"787",ve_adj:"1.059.797",circ:"787",sh:"8.4%",tasa:"5.50%",tt:"TNA",pc:"956.11",tirea:"5.50%",pror:"—"},
+    {t:"AO27",d:"Bonar USD 6% – vto oct-27",tp:"HD",nr:"Reap.",v:"29/10/2027",p:520,vno_of:"405",vno_adj:"200",ve_adj:"USD 203mn",circ:"1.895",sh:"N/A",tasa:"5.00%",tt:"TNA",pc:"1013.81",tirea:"5.12%",pror:"49.75%"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Reap.",v:"31/10/2028",p:888,vno_of:"224",vno_adj:"150",ve_adj:"USD 143mn",circ:"1.234",sh:"N/A",tasa:"8.17%",tt:"TNA",pc:"952.50",tirea:"8.49%",pror:"96.23%"},
+  ],
+  10:[
+    {t:"TXMD8",d:"Dual CER/TAMAR – vto 15-dic-28",tp:"Dual",nr:"Nueva",v:"15/12/2028",p:919, vno_of:"1.940.448",vno_adj:"1.624.039",ve_adj:"1.445.395",circ:"1.624.039",sh:"23.6%",tasa:"CER 4.76% / TAMAR 7.76%",tt:"Dual",pc:"890.00",tirea:"—",pror:"—"},
+    {t:"TXMD9",d:"Dual CER/TAMAR – vto 14-dic-29",tp:"Dual",nr:"Nueva",v:"14/12/2029",p:1283,vno_of:"1.216.047",vno_adj:"1.010.962",ve_adj:"827.978", circ:"1.010.962",sh:"13.5%",tasa:"CER 5.86% / TAMAR 8.84%",tt:"Dual",pc:"819.00",tirea:"—",pror:"—"},
+    {t:"TXMJ0",d:"Dual CER/TAMAR – vto 28-jun-30",tp:"Dual",nr:"Nueva",v:"28/06/2030",p:1479,vno_of:"3.140.157",vno_adj:"2.705.525",ve_adj:"2.110.309",circ:"2.705.525",sh:"34.5%",tasa:"CER 6.34% / TAMAR 9.30%",tt:"Dual",pc:"780.00",tirea:"—",pror:"—"},
+    {t:"D31G6",d:"DL – vto 31-ago-26",tp:"DL",nr:"Nueva",v:"31/08/2026",p:82,  vno_of:"1.374",   vno_adj:"1.134",   ve_adj:"1.620.618",circ:"1.134",   sh:"26.5%",tasa:"5.49%",tt:"TNA",pc:"988.33",tirea:"5.49%",pror:"—"},
+    {t:"TZXD8",d:"CER – vto 15-dic-28",tp:"CER",nr:"Nueva",v:"15/12/2028",p:919, vno_of:"156",     vno_adj:"98",      ve_adj:"116.129",  circ:"98",      sh:"1.9%", tasa:"—",tt:"CER+",pc:"818.00",tirea:"8.34%",pror:"—"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Reap.",v:"31/10/2028",p:874,vno_of:"266",vno_adj:"200",ve_adj:"USD 191mn",circ:"1.534",sh:"N/A",tasa:"8.31%",tt:"TNA",pc:"952.50",tirea:"8.63%",pror:"30.94%"},
+  ],
+  11:[
+    {t:"S13N6",d:"Lecap – vto 13-nov-26",tp:"Lecap",nr:"Nueva",v:"13/11/2026",p:140,vno_of:"s/d",vno_adj:"s/d",ve_adj:"4.180.000",circ:"s/d",sh:"31.6%",tasa:"2.10%",tt:"TEM",pc:"—",tirea:"28.32%",pror:"—"},
+    {t:"TZXO7",d:"CER – vto 31-oct-27",tp:"CER",nr:"Reap.",v:"31/10/2027",p:490,vno_of:"s/d",vno_adj:"s/d",ve_adj:"470.000",circ:"s/d",sh:"3.6%",tasa:"—",tt:"CER+",pc:"s/d",tirea:"6.47%",pror:"—"},
+    {t:"TZXM8",d:"CER – vto 31-mar-28",tp:"CER",nr:"Reap.",v:"31/03/2028",p:643,vno_of:"s/d",vno_adj:"s/d",ve_adj:"200.000",circ:"s/d",sh:"1.5%",tasa:"—",tt:"CER+",pc:"s/d",tirea:"8.09%",pror:"—"},
+    {t:"TZXD8",d:"CER – vto 15-dic-28",tp:"CER",nr:"Reap.",v:"15/12/2028",p:902,vno_of:"s/d",vno_adj:"s/d",ve_adj:"1.480.000",circ:"s/d",sh:"11.2%",tasa:"—",tt:"CER+",pc:"s/d",tirea:"8.41%",pror:"—"},
+    {t:"TXMD9",d:"Dual CER/TAMAR – vto 14-dic-29",tp:"Dual",nr:"Reap.",v:"14/12/2029",p:1267,vno_of:"s/d",vno_adj:"s/d",ve_adj:"3.770.000",circ:"s/d",sh:"28.5%",tasa:"—",tt:"Dual",pc:"s/d",tirea:"CER 6.27% / TAMAR 9.16%",pror:"—"},
+    {t:"TML27",d:"TAMAR – vto 31-jul-27",tp:"TAMAR",nr:"Nueva",v:"31/07/2027",p:400,vno_of:"s/d",vno_adj:"s/d",ve_adj:"2.430.000",circ:"s/d",sh:"18.4%",tasa:"5.40%",tt:"TAMAR+",pc:"—",tirea:"s/d",pror:"—"},
+    {t:"D31G6",d:"DL – vto 31-ago-26",tp:"DL",nr:"Reap.",v:"31/08/2026",p:66,vno_of:"s/d",vno_adj:"s/d",ve_adj:"570.000",circ:"s/d",sh:"4.3%",tasa:"6.41%",tt:"TNA",pc:"s/d",tirea:"6.41%",pror:"—"},
+    {t:"TZVD8",d:"DL – vto 15-dic-28",tp:"DL",nr:"Reap.",v:"15/12/2028",p:902,vno_of:"s/d",vno_adj:"s/d",ve_adj:"120.000",circ:"s/d",sh:"0.9%",tasa:"8.57%",tt:"TNA",pc:"s/d",tirea:"8.57%",pror:"—"},
+    {t:"AO28",d:"Bonar USD 6% – vto oct-28",tp:"HD",nr:"Reap.",v:"31/10/2028",p:857,vno_of:"527",vno_adj:"266",ve_adj:"USD 257mn",circ:"2.000",sh:"N/A",tasa:"7.56%",tt:"TNA",pc:"967.00",tirea:"7.83%",pror:"3.98%"},
+  ],
+  12:[
+    {t:"S30N6",d:"Lecap capitalizable – vto 30-nov-26",tp:"Lecap",nr:"Reap.",v:"30/11/2026",p:138,vno_of:"4.036.727",vno_adj:"1.995.646",ve_adj:"2.382.801",circ:"3.780.311",sh:"43.8%",tasa:"1.92%",tt:"TEM",pc:"1194.00",tirea:"25.59%",pror:"—"},
+    {t:"TZXM8",d:"CER – vto 31-mar-28",tp:"CER",nr:"Reap.",v:"31/03/2028",p:625,vno_of:"1.347.602",vno_adj:"1.115.622",ve_adj:"1.077.691",circ:"17.968.752",sh:"19.8%",tasa:"—",tt:"CER+",pc:"966.00",tirea:"8.07%",pror:"—"},
+    {t:"TMG28",d:"TAMAR – vto 31-ago-28",tp:"TAMAR",nr:"Reap.",v:"31/08/2028",p:778,vno_of:"668.271",vno_adj:"604.538",ve_adj:"627.511",circ:"5.393.897",sh:"11.5%",tasa:"—",tt:"TAMAR+",pc:"1038.00",tirea:"34.57%",pror:"—"},
+    {t:"D31G6",d:"DL – vto 31-ago-26",tp:"DL",nr:"Reap.",v:"31/08/2026",p:47,vno_of:"USD 252",vno_adj:"USD 178",ve_adj:"259.998",circ:"USD 2.703",sh:"4.8%",tasa:"7.77%",tt:"TNA",pc:"USD 990.90",tirea:"7.77%",pror:"—"},
+    {t:"D10Y7",d:"DL – vto 10-may-27 (nueva)",tp:"DL",nr:"Nueva",v:"10/05/2027",p:299,vno_of:"USD 713",vno_adj:"USD 604",ve_adj:"868.063",circ:"USD 604",sh:"16.0%",tasa:"3.16%",tt:"TNA",pc:"USD 975.00",tirea:"3.16%",pror:"—"},
+    {t:"TZVD8",d:"DL – vto 15-dic-28",tp:"DL",nr:"Reap.",v:"15/12/2028",p:884,vno_of:"USD 200",vno_adj:"USD 186",ve_adj:"222.177",circ:"USD 703",sh:"4.1%",tasa:"9.08%",tt:"TNA",pc:"USD 811.00",tirea:"9.08%",pror:"—"},
+    {t:"AO29",d:"Bonar USD 6% – vto 31-oct-29 (nuevo, debut)",tp:"HD",nr:"Nueva",v:"31/10/2029",p:1204,vno_of:"USD 1.046",vno_adj:"USD 499",ve_adj:"USD 470mn",circ:"USD 499",sh:"N/A",tasa:"7.99%",tt:"TNA",pc:"USD 943.00",tirea:"8.29%",pror:"—"},
+  ],
+  13:[
+    {t:"S16O6",d:"Letra capitalizable – vto 16-oct-26",tp:"Lecap",nr:"Nueva",v:"16/10/2026",p:79,vno_of:"5.079.718",vno_adj:"4.612.305",ve_adj:"4.612.305",circ:"4.612.305",sh:"37.8%",tasa:"2.05%",tt:"TEM",pc:"—",tirea:"27.57%",pror:"—"},
+    {t:"TXMD8",d:"Dual CER/TAMAR – vto 15-dic-28",tp:"Dual",nr:"Reap.",v:"15/12/2028",p:870,vno_of:"1.055.869",vno_adj:"947.748",ve_adj:"867.189",circ:"3.807.626",sh:"7.1%",tasa:"—",tt:"Dual",pc:"915.00",tirea:"CER 5.40%",pror:"—"},
+    {t:"TMVE8",d:"Dual TAMAR/DL – vto 31-ene-28 (nuevo)",tp:"Dual",nr:"Nueva",v:"31/01/2028",p:549,vno_of:"USD 4.027",vno_adj:"USD 3.467",ve_adj:"4.722.120",circ:"USD 3.467",sh:"38.7%",tasa:"—",tt:"Dual",pc:"USD 908.10",tirea:"DL 6.64%",pror:"—"},
+    {t:"D30S6",d:"DL – vto 30-sep-26",tp:"DL",nr:"Reap.",v:"30/09/2026",p:63,vno_of:"USD 612",vno_adj:"USD 453",ve_adj:"671.207",circ:"USD 1.724",sh:"5.5%",tasa:"7.25%",tt:"TNA",pc:"USD 988.41",tirea:"7.25%",pror:"—"},
+    {t:"D15E7",d:"DL – vto 15-ene-27 (nueva)",tp:"DL",nr:"Nueva",v:"15/01/2027",p:170,vno_of:"USD 998",vno_adj:"USD 911",ve_adj:"1.332.707",circ:"USD 911",sh:"10.9%",tasa:"5.51%",tt:"TNA",pc:"USD 975.70",tirea:"5.51%",pror:"—"},
+    {t:"AO29",d:"Bonar USD 6% – vto oct-29 (reapertura)",tp:"HD",nr:"Reap.",v:"31/10/2029",p:824,vno_of:"USD 366",vno_adj:"USD 327",ve_adj:"USD 309mn",circ:"USD 976",sh:"N/A",tasa:"8.02%",tt:"TNA",pc:"USD 945.00",tirea:"8.33%",pror:"—"},
+  ],
+  14:[
+    {t:"S30N6",d:"Letra capitalizable – vto 30-nov-26",tp:"Lecap",nr:"Reap.",v:"30/11/2026",p:110,vno_of:"3.631.315",vno_adj:"2.724.181",ve_adj:"3.286.206",circ:"6.504.491",sh:"73.2%",tasa:"2.11%",tt:"TEM",pc:"1206.31",tirea:"28.54%",pror:"—"},
+    {t:"X29E7",d:"Lecer – vto 29-ene-27 (nueva)",tp:"CER",nr:"Nueva",v:"29/01/2027",p:170,vno_of:"1.238.279",vno_adj:"659.715",ve_adj:"646.521",circ:"659.715",sh:"14.4%",tasa:"—",tt:"CER+",pc:"980.00",tirea:"4.51%",pror:"—"},
+    {t:"D30S6",d:"DL – vto 30-sep-26",tp:"DL",nr:"Reap.",v:"30/09/2026",p:49,vno_of:"USD 301",vno_adj:"USD 159",ve_adj:"234.411",circ:"USD 1.882",sh:"5.2%",tasa:"7.33%",tt:"TNA",pc:"USD 991.00",tirea:"7.33%",pror:"—"},
+    {t:"D30O6",d:"DL – vto 30-oct-26 (nueva)",tp:"DL",nr:"Nueva",v:"30/10/2026",p:79,vno_of:"USD 301",vno_adj:"USD 221",ve_adj:"324.511",circ:"USD 221",sh:"7.2%",tasa:"6.91%",tt:"TNA",pc:"USD 986.00",tirea:"6.91%",pror:"—"},
+    {t:"AO29",d:"Bonar USD 6% – vto 31-oct-29 (reapertura)",tp:"HD",nr:"Reap.",v:"31/10/2029",p:1176,vno_of:"USD 71",vno_adj:"USD 50",ve_adj:"USD 47mn",circ:"USD 1.176",sh:"N/A",tasa:"8.39%",tt:"TNA",pc:"USD 937.85",tirea:"8.72%",pror:"60.15%"},
+  ],
+  15:[
+    {t:"S30N6",d:"Lecap capitalizable – vto 30-nov-26",tp:"Lecap",nr:"Reap.",v:"30/11/2026",p:91,vno_of:"5.401.182",vno_adj:"5.000.000",ve_adj:"6.085.000",circ:"s/d",sh:"50.0%",tasa:"—",tt:"TEM",pc:"1217.00",tirea:"29.75%",pror:"51.46%"},
+    {t:"S29E7",d:"Lecap – vto 29-ene-27 (nueva)",tp:"Lecap",nr:"Nueva",v:"29/01/2027",p:151,vno_of:"2.441.533",vno_adj:"2.379.233",ve_adj:"2.379.233",circ:"2.379.233",sh:"19.6%",tasa:"2.25%",tt:"TEM",pc:"—",tirea:"30.60%",pror:"—"},
+    {t:"T31Y7",d:"Boncap – vto 31-may-27",tp:"Lecap",nr:"Reap.",v:"31/05/2027",p:273,vno_of:"2.166.202",vno_adj:"1.974.600",ve_adj:"2.448.505",circ:"s/d",sh:"20.1%",tasa:"—",tt:"TEM",pc:"1240.00",tirea:"30.69%",pror:"—"},
+    {t:"X29E7",d:"CER – vto 29-ene-27",tp:"CER",nr:"Reap.",v:"29/01/2027",p:151,vno_of:"914.515",vno_adj:"848.347",ve_adj:"834.350",circ:"1.508.063",sh:"6.9%",tasa:"—",tt:"CER+",pc:"983.50",tirea:"6.25%",pror:"—"},
+    {t:"D30O6",d:"DL – vto 30-oct-26",tp:"DL",nr:"Reap.",v:"30/10/2026",p:60,vno_of:"USD 367",vno_adj:"USD 279",ve_adj:"417.824",circ:"USD 641",sh:"3.4%",tasa:"7.64%",tt:"TNA",pc:"USD 987.80",tirea:"7.64%",pror:"—"},
+  ]
+};
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+const charts = {};
+function showTab(i) {
+  document.querySelectorAll('.tab').forEach(t=>{
+    const m = t.getAttribute('onclick').match(/showTab\((\d+)\)/);
+    t.classList.toggle('active', m && +m[1]===i);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id===`tab${i}`));
+  if(i===1 && !charts.rollover) buildRolloverCharts();
+  if(i===2 && !charts.mix)      buildComposicionCharts();
+  if(i===3 && !charts.b2c)      buildDemandaCharts();
+  if(i===4 && !charts.hd)       buildHDCharts();
+  if(i===5 && !charts.tabla)    buildTabla();
+  if(i===6 && !charts.cal)      buildCalendario();
+}
+
+const LB = D.map(d=>{
+  const months = {ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06',jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12'};
+  const [day, mon] = d.f.split('-');
+  return `${day}/${months[mon]}/26`;
+});
+const MN = "'IBM Plex Mono',monospace";
+const TT = {backgroundColor:'#111827',borderColor:'#1e2d40',borderWidth:1,
+  titleFont:{family:MN,size:11},bodyFont:{family:MN,size:11},titleColor:'#7dd3fc',bodyColor:'#f1f5f9'};
+const XA = {ticks:{color:'#94a3b8',font:{family:MN,size:11}},grid:{color:'rgba(31,51,82,0.8)'}};
+const YA = (cb)=>({ticks:{color:'#94a3b8',font:{family:MN,size:11},callback:cb},grid:{color:'rgba(31,51,82,0.8)'}});
+const BASE = {responsive:true,maintainAspectRatio:true};
+
+function mkBar(id,data,bg,bc,ycb,ttcb,extra={}){
+  return new Chart(document.getElementById(id),{type:'bar',
+    data:{labels:LB,datasets:[{data,backgroundColor:bg,borderColor:bc,borderWidth:1,borderRadius:2}]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>ttcb(c.raw)}}},
+      scales:{x:XA,y:YA(ycb),...extra}}});
+}
+function mkBarLbl(id,labels,data,bg,bc,ycb,ttcb,extra={}){
+  return new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:bg,borderColor:bc,borderWidth:1,borderRadius:2}]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>ttcb(c.raw)}}},
+      scales:{x:XA,y:YA(ycb),...extra}}});
+}
+function mkLine(id,datasets,ycb,ttcb,extra={}){
+  return new Chart(document.getElementById(id),{type:'line',
+    data:{labels:LB,datasets},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label||''}: ${ttcb(c.raw)}`}}},
+      scales:{x:XA,y:YA(ycb),...extra}}});
+}
+
+// ── CONVERSIONES DATA ──────────────────────────────────────────────────────
+
+// ── TAB 0: DETALLE ──────────────────────────────────────────────────────────
+function renderDetalle(){
+  const idx = +document.getElementById('licSelect').value;
+  const d = D[idx];
+  const instr = INSTRS[idx]||[];
+
+  // Summary cards
+  const absUSD = d.abs==null? null : Math.round(d.abs * 1e12 / TC / 1e6);
+  document.getElementById('licSummary').innerHTML = `
+    <div class="ls-card"><div class="ls-lbl">Adjudicado</div><div class="ls-val">$${d.adj.toFixed(2)}bn</div></div>
+    <div class="ls-card"><div class="ls-lbl">Rollover</div><div class="ls-val ${d.ro==null?'':(d.ro>=1?'up':'dn')}">${d.ro==null?'s/d (venc. no publ.)':(d.ro*100).toFixed(1)+'%'}</div></div>
+    <div class="ls-card"><div class="ls-lbl">Absorción Neta</div><div class="ls-val ${d.abs==null?'':(d.abs>=0?'up':'dn')}">${d.abs==null?'s/d':(d.abs>=0?'+':'')+d.abs.toFixed(2)+'bn'}</div></div>
+    <div class="ls-card"><div class="ls-lbl">Abs. USD (TC $${TC})</div><div class="ls-val">${absUSD==null?'s/d':(absUSD>=0?'USD +'+absUSD:'USD '+absUSD)+'mn'}</div></div>
+    <div class="ls-card"><div class="ls-lbl">WAM VE / VNO</div><div class="ls-val">${d.wve}d / ${d.wvno==null?'s/d':d.wvno+'d'}</div></div>`;
+
+  const tbMap = {Lecap:'tb-lecap',CER:'tb-cer',TAMAR:'tb-tamar',DL:'tb-dl',HD:'tb-hd',Dual:'tb-dual'};
+  const rwMap = {Lecap:'row-lecap',CER:'row-cer',TAMAR:'row-tamar',DL:'row-dl',HD:'row-hd',Dual:'row-dual'};
+  document.getElementById('instrBody').innerHTML = instr.map(i=>`
+    <tr class="${rwMap[i.tp]||''}">
+      <td style="text-align:left;font-weight:600">${i.t}</td>
+      <td style="text-align:left;color:var(--text)">${i.d}</td>
+      <td><span class="type-badge ${tbMap[i.tp]||''}">${i.tp}</span></td>
+      <td>${i.nr}</td><td>${i.v}</td><td>${i.p}</td>
+      <td>${i.vno_of}</td><td>${i.vno_adj}</td><td>${i.ve_adj}</td>
+      <td>${i.circ}</td><td>${i.sh}</td><td>${i.tasa}</td>
+      <td>${i.tt}</td><td>${i.pc}</td><td>${i.tirea}</td><td>${i.pror}</td>
+    </tr>`).join('');
+}
+const CONV = {
+  4: {
+    titulo: "Conversión del BONCER TZX26 (vto 30-jun-26) · Art. 2 Decreto 846/24 · 12-mar-2026",
+    rows: [
+      {op:"1",nuevo:"TMG27",desc:"TAMAR vto 31-ago-27",tipo:"TAMAR",venc:"31/08/2027",vno_adj:"s/d",ve_equiv:"s/d",precio:"s/d",tirea:"s/d",rescatado:"TZX26 (jun-26)",vno_resc:"s/d"},
+      {op:"2",nuevo:"TZXM8",desc:"CER vto 31-mar-28",  tipo:"CER",  venc:"31/03/2028",vno_adj:"s/d",ve_equiv:"s/d",precio:"s/d",tirea:"s/d",rescatado:"TZX26 (jun-26)",vno_resc:"s/d"},
+      {op:"3",nuevo:"TZXM9",desc:"CER vto 28-mar-29",  tipo:"CER",  venc:"28/03/2029",vno_adj:"s/d",ve_equiv:"s/d",precio:"s/d",tirea:"s/d",rescatado:"TZX26 (jun-26)",vno_resc:"s/d"},
+    ],
+    src:"Montos de detalle no disponibles en comunicado web — ver PDF adjunto en argentina.gob.ar"
+  },
+  5: {
+    titulo: "Conversión del BONCER TZX26 (vto 30-jun-26) · Art. 2 Decreto 846/24 · 27-mar-2026 · 135 ofertas · 24.21% del VNO en circ.",
+    rows: [
+      {op:"1",nuevo:"TMG27",desc:"TAMAR vto 31-ago-27",tipo:"TAMAR",venc:"31/08/2027",vno_adj:"s/d",ve_equiv:"s/d",precio:"s/d",tirea:"s/d",rescatado:"TZX26 (jun-26)",vno_resc:"s/d"},
+      {op:"2",nuevo:"TZXM8",desc:"CER vto 31-mar-28",  tipo:"CER",  venc:"31/03/2028",vno_adj:"s/d",ve_equiv:"s/d",precio:"s/d",tirea:"s/d",rescatado:"TZX26 (jun-26)",vno_resc:"s/d"},
+      {op:"3",nuevo:"TZXM9",desc:"CER vto 28-mar-29",  tipo:"CER",  venc:"28/03/2029",vno_adj:"s/d",ve_equiv:"s/d",precio:"s/d",tirea:"s/d",rescatado:"TZX26 (jun-26)",vno_resc:"s/d"},
+    ],
+    src:"Montos de detalle no disponibles en comunicado web — ver PDF adjunto en argentina.gob.ar"
+  },
+  6: {
+    titulo: "Conversión TZXD6 / TZXM7 / TTS26 · Art. 2 Decreto 846/24 · 15-abr-2026 · 133 ofertas",
+    rows: [
+      {op:"1",nuevo:"TZXM8",desc:"CER vto 31-mar-28",   tipo:"CER",  venc:"31/03/2028",vno_adj:"14.423.443",ve_equiv:"13.044.129",precio:"$904,37",  tirea:"6.35%", rescatado:"TZXD6 (dic-26)",  vno_resc:"4.741.027"},
+      {op:"2",nuevo:"TZXM8",desc:"CER vto 31-mar-28",   tipo:"CER",  venc:"31/03/2028",vno_adj:"717.898",   ve_equiv:"649.245",   precio:"$904,37",  tirea:"6.35%", rescatado:"TZXM7 (mar-27)",  vno_resc:"316.662"},
+      {op:"3",nuevo:"TMF28", desc:"TAMAR vto 25-feb-28", tipo:"TAMAR",venc:"25/02/2028",vno_adj:"1.921.225", ve_equiv:"1.921.225", precio:"6.50% TEM",tirea:"35.27%",rescatado:"TTS26 (sep-26)",   vno_resc:"1.251.955"},
+    ],
+    src:"(*) Montos en millones de pesos · Fuente: Secretaría de Finanzas 15-abr-2026"
+  },
+  7: {
+    titulo: "Conversión TZV26 / TTD26 / M31G6 / TZXD6 · Art. 2 Decreto 846/24 · 28-abr-2026 · 104 ofertas",
+    rows: [
+      {op:"1",nuevo:"TZV28", desc:"DL vto 30-jun-28",    tipo:"DL",   venc:"30/06/2028",vno_adj:"USD 336mn",ve_equiv:"USD 286mn", precio:"USD 850,00",tirea:"7.83%", rescatado:"TZV26 DL (jun-26)",   vno_resc:"USD 289mn"},
+      {op:"2",nuevo:"TMF28", desc:"TAMAR vto 25-feb-28", tipo:"TAMAR",venc:"25/02/2028",vno_adj:"7.003.425", ve_equiv:"7.052.449",precio:"$1.007,00", tirea:"33.44%",rescatado:"TTD26 Dual (dic-26)",  vno_resc:"4.576.957"},
+      {op:"3",nuevo:"TMF28", desc:"TAMAR vto 25-feb-28", tipo:"TAMAR",venc:"25/02/2028",vno_adj:"1.060.253", ve_equiv:"1.067.675",precio:"$1.007,00", tirea:"33.44%",rescatado:"M31G6 TAMAR (ago-26)", vno_resc:"892.921"},
+      {op:"4",nuevo:"TZXM8", desc:"CER vto 31-mar-28",   tipo:"CER",  venc:"31/03/2028",vno_adj:"583.128",   ve_equiv:"530.647",  precio:"$910,00",   tirea:"6.72%", rescatado:"TZXD6 CER (dic-26)",  vno_resc:"191.607"},
+    ],
+    src:"(*) Montos en millones de pesos salvo indicación · Fuente: Secretaría de Finanzas 28-abr-2026"
+  },
+  10: {
+    titulo: "Conversión TZX26 (vto jun-26) y TTJ26 Dual (vto jun-26) · Art. 2 Decreto 846/24 · 10-jun-2026 · 348 ofertas",
+    rows: [
+      {op:"TZX26-1",nuevo:"TXMD8",desc:"Dual CER/TAMAR vto 15-dic-28",tipo:"Dual",venc:"15/12/2028",vno_adj:"324.705",  ve_equiv:"291.585",precio:"$898,00",tirea:"CER 4.51% / TAMAR 7.79%",rescatado:"TZX26 (jun-26)",vno_resc:"74.442"},
+      {op:"TZX26-2",nuevo:"TXMD9",desc:"Dual CER/TAMAR vto 14-dic-29",tipo:"Dual",venc:"14/12/2029",vno_adj:"734.525",  ve_equiv:"608.187",precio:"$828,00",tirea:"CER 5.63% / TAMAR 8.88%",rescatado:"TZX26 (jun-26)",vno_resc:"155.270"},
+      {op:"TZX26-3",nuevo:"TXMJ0",desc:"Dual CER/TAMAR vto 28-jun-30",tipo:"Dual",venc:"28/06/2030",vno_adj:"1.152.299",ve_equiv:"909.164",precio:"$789,00",tirea:"CER 6.12% / TAMAR 9.36%",rescatado:"TZX26 (jun-26)",vno_resc:"232.109"},
+      {op:"TTJ26-1",nuevo:"TXMD8",desc:"Dual CER/TAMAR vto 15-dic-28",tipo:"Dual",venc:"15/12/2028",vno_adj:"911.134",  ve_equiv:"818.199",precio:"$898,00",tirea:"CER 4.51% / TAMAR 7.79%",rescatado:"TTJ26 Dual (jun-26)",vno_resc:"507.725"},
+      {op:"TTJ26-2",nuevo:"TXMD9",desc:"Dual CER/TAMAR vto 14-dic-29",tipo:"Dual",venc:"14/12/2029",vno_adj:"494.475",  ve_equiv:"409.425",precio:"$828,00",tirea:"CER 5.63% / TAMAR 8.88%",rescatado:"TTJ26 Dual (jun-26)",vno_resc:"254.065"},
+    ],
+    src:"(*) Montos en millones de pesos · Fuente: Secretaría de Finanzas 10-jun-2026"
+  },
+};
+
+function renderConversiones(idx) {
+  const panel = document.getElementById('convPanel');
+  const body  = document.getElementById('convBody');
+  const src   = document.getElementById('convSrc');
+  const conv  = CONV[idx];
+  if (!conv) { panel.style.display='none'; return; }
+  const tbMap = {Lecap:'tb-lecap',CER:'tb-cer',TAMAR:'tb-tamar',DL:'tb-dl',HD:'tb-hd',Dual:'tb-dual'};
+  panel.style.display = 'block';
+  const titleEl = document.querySelector('#convPanel .pt');
+  titleEl.innerHTML = '<i style="background:var(--orange)"></i> CONVERSIÓN (Sección B) — ' + conv.titulo;
+  src.textContent = conv.src;
+  body.innerHTML = conv.rows.map(r=>`
+    <tr>
+      <td style="text-align:left;color:var(--muted)">${r.op}</td>
+      <td style="text-align:left;font-weight:600;color:var(--green)">${r.nuevo}</td>
+      <td><span class="type-badge ${tbMap[r.tipo]||''}">${r.tipo}</span></td>
+      <td>${r.venc}</td>
+      <td>${r.vno_adj}</td><td>${r.ve_equiv}</td>
+      <td>${r.precio}</td><td>${r.tirea}</td>
+      <td style="text-align:left;color:var(--red)">${r.rescatado}</td>
+      <td>${r.vno_resc}</td>
+    </tr>`).join('');
+}
+
+renderDetalle();
+renderConversiones(15);
+buildTabla();
+
+// ── TAB 1: ROLLOVER ─────────────────────────────────────────────────────────
+function buildRolloverCharts(){
+  charts.rollover=true;
+  const DR = D.filter(d=>d.venc!=null); // sólo licitaciones con vencimientos publicados
+  const LBR = DR.map(d=>{
+    const months = {ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06',jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12'};
+    const [day, mon] = d.f.split('-');
+    return `${day}/${months[mon]}/26`;
+  });
+  mkBarLbl('cRollover',LBR,DR.map(d=>+(d.ro*100).toFixed(1)),
+    DR.map(d=>d.ro>=1?'rgba(16,185,129,.6)':'rgba(239,68,68,.6)'),
+    DR.map(d=>d.ro>=1?'#10b981':'#ef4444'),
+    v=>`${v}%`,v=>`${v.toFixed(1)}%`,{y:{...YA(v=>`${v}%`),min:75}});
+  new Chart(document.getElementById('cRoAcum'),{type:'line',
+    data:{labels:LBR,datasets:[{label:'Ro acum',data:DR.map(d=>d.ro_acum),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#38bdf8',tension:.3,fill:true}]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`${c.raw.toFixed(1)}%`}}},
+      scales:{x:XA,y:{...YA(v=>`${v}%`),min:85}}}});
+  mkBarLbl('cAbs',LBR,DR.map(d=>+d.abs.toFixed(2)),
+    DR.map(d=>d.abs>=0?'rgba(16,185,129,.6)':'rgba(239,68,68,.6)'),
+    DR.map(d=>d.abs>=0?'#10b981':'#ef4444'),
+    v=>`${v>0?'+':''}${v}bn`,v=>`${v>0?'+':''}${v.toFixed(2)}bn`);
+  // Vencimientos en términos reales (deflactado por IPC, base dic-25=1.00)
+  buildVencReal();
+  // Rollover mensual ponderado: Σ adj / Σ venc por mes calendario
+  const MES_ORD=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const agg={};
+  DR.forEach(d=>{ const m=d.f.split('-')[1]; if(!agg[m]) agg[m]={adj:0,venc:0,n:0}; agg[m].adj+=d.adj; agg[m].venc+=d.venc; agg[m].n++; });
+  const mesesL=MES_ORD.filter(m=>agg[m]);
+  const roMes=mesesL.map(m=>+(agg[m].adj/agg[m].venc*100).toFixed(1));
+  new Chart(document.getElementById('cRoMes'),{type:'line',
+    data:{labels:mesesL.map(m=>m.charAt(0).toUpperCase()+m.slice(1)),datasets:[
+      {label:'Rollover mensual',data:roMes,
+       borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',borderWidth:2,
+       pointRadius:4,pointBackgroundColor:roMes.map(v=>v>=100?'#10b981':'#ef4444'),
+       pointBorderColor:roMes.map(v=>v>=100?'#10b981':'#ef4444'),tension:.3,fill:true}]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{
+      label:c=>`${c.raw.toFixed(1)}% — ${agg[mesesL[c.dataIndex]].n} lic. · Adj $${agg[mesesL[c.dataIndex]].adj.toFixed(2)}bn / Venc $${agg[mesesL[c.dataIndex]].venc.toFixed(2)}bn`}}},
+      scales:{x:XA,y:{...YA(v=>`${v}%`),min:75}}}});
+  new Chart(document.getElementById('cOfAdj'),{type:'bar',
+    data:{labels:LB,datasets:[
+      {label:'Ofertado',data:D.map(d=>d.of),backgroundColor:'rgba(56,189,248,.25)',borderColor:'#38bdf8',borderWidth:1,borderRadius:2},
+      {label:'Adjudicado',data:D.map(d=>d.adj),backgroundColor:'rgba(16,185,129,.6)',borderColor:'#10b981',borderWidth:1,borderRadius:2},
+    ]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toFixed(2)}bn`}}},
+      scales:{x:XA,y:YA(v=>`$${v}bn`)}}});
+  // Absorción % M2 + MUSD dual axis (requiere M2 oficial, no disponible aún para lic.16)
+  const DM2 = D.filter(d=>d.absM2!=null);
+  const LBM2 = DM2.map(d=>{
+    const months = {ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06',jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12'};
+    const [day, mon] = d.f.split('-');
+    return `${day}/${months[mon]}/26`;
+  });
+  new Chart(document.getElementById('cAbsM2'),{type:'bar',
+    data:{labels:LBM2,datasets:[
+      {label:'% M2',data:DM2.map(d=>d.absM2),backgroundColor:DM2.map(d=>d.absM2>=0?'rgba(56,189,248,.5)':'rgba(239,68,68,.5)'),borderColor:DM2.map(d=>d.absM2>=0?'#38bdf8':'#ef4444'),borderWidth:1,borderRadius:2,yAxisID:'y'},
+      {label:'MUSD',data:DM2.map(d=>Math.round(d.abs*1e12/TC/1e6)),type:'line',borderColor:'#f97316',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#f97316',tension:.3,yAxisID:'y1'},
+    ]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>c.datasetIndex===0?`%M2: ${c.raw.toFixed(2)}%`:`USD ${c.raw}mn`}}},
+      scales:{x:XA,y:{...YA(v=>`${v>0?'+':''}${v}%`),position:'left'},y1:{...YA(v=>`USD ${v}mn`),position:'right',grid:{display:false}}}}});
+}
+
+// Vencimientos en términos reales — expresado en pesos de HOY (27-ago-26)
+// Se infla cada mes con el IPC oficial ene–jul-26 hasta el nivel de precios de jul-26.
+// lic.15 (12-ago) y lic.16 (27-ago) se dejan constantes (sin ajustar): están a ≤15 y 0 días de la fecha base, diferencia de precios despreciable.
+const IPC_MES = {ene:0.0291, feb:0.0290, mar:0.0340, abr:0.0259, may:0.0210, jun:0.0189, jul:0.0210};
+function buildVencReal(){
+  const MES_ORD=['ene','feb','mar','abr','may','jun','jul'];
+  // índice de precios acumulado, base dic-25=1.00
+  let idx=1;
+  const CPI_IDX={};
+  MES_ORD.forEach(m=>{ idx*=(1+IPC_MES[m]); CPI_IDX[m]=idx; });
+  const CPI_HOY = CPI_IDX['jul']; // nivel de precios de referencia = último IPC oficial (jul-26) ≈ hoy
+  const lblsVR = D.map(d=>d.f);
+  const real = D.map(d=>{
+    const m = d.f.split('-')[1];
+    const mult = CPI_IDX[m] ? (CPI_HOY / CPI_IDX[m]) : 1; // ago (lic.15/16) sin dato oficial → constante
+    return +(d.venc * mult).toFixed(2);
+  });
+  mkBarLbl('cVencReal',lblsVR,real,'rgba(251,146,60,.6)','#fb923c',
+    v=>`$${v}bn`,v=>`$${v.toFixed(2)}bn (pesos de hoy)`);
+}
+
+// ── TAB 2: COMPOSICIÓN ───────────────────────────────────────────────────────
+function buildComposicionCharts(){
+  charts.mix=true;
+  new Chart(document.getElementById('cMix'),{type:'bar',
+    data:{labels:LB,datasets:[
+      {label:'Lecap',data:D.map(d=>d.shares.L),backgroundColor:'#3b82f6',stack:'a'},
+      {label:'CER',  data:D.map(d=>d.shares.C),backgroundColor:'#22c55e',stack:'a'},
+      {label:'TAMAR',data:D.map(d=>d.shares.T),backgroundColor:'#eab308',stack:'a'},
+      {label:'DL',   data:D.map(d=>d.shares.D),backgroundColor:'#f97316',stack:'a'},
+      {label:'Dual', data:D.map(d=>d.shares.X),backgroundColor:'#a855f7',stack:'a'},
+    ]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label}: ${c.raw.toFixed(1)}%`}}},
+      scales:{x:{...XA,stacked:true},y:{...YA(v=>`${v}%`),stacked:true,max:100}}}});
+  mkLine('cWam',[
+    {label:'WAM VE',data:D.map(d=>d.wve),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#38bdf8',tension:.3,fill:true},
+  ],v=>`${v}d`,v=>`${v}d`);
+  mkBar('cConc',D.map(d=>d.conc),'rgba(56,189,248,.45)','#38bdf8',v=>`${v}%`,v=>`${v.toFixed(1)}%`);
+
+  // Show top instrument per licitacion
+  const TOP_INSTR = {
+    "2026-01": "S27F6 (Lecap)",
+    "2026-02": "S16M6 (Lecap)",
+    "2026-03": "S17A6 (Lecap)",
+    "2026-04": "X15Y6 (CER)",
+    "2026-05": "X15Y6 (CER)",
+    "2026-06": "TZXS8 (CER)",
+    "2026-07": "S14G6 (Lecap)",
+    "2026-08": "S12J6 (Lecap)",
+    "2026-09": "S30S6 (Lecap)",
+    "2026-10": "S15S6 (Lecap)",
+    "2026-11": "TXMJ0 (Dual)",
+    "2026-12": "S13N6 (Lecap)",
+    "2026-13": "S30N6 (Lecap)",
+    "2026-14": "TMVE8 (Dual TAMAR/DL)",
+    "2026-15": "S30N6 (Lecap)",
+    "2026-16": "S30N6 (Lecap)",
+  };
+  const concEl = document.getElementById('concTopInstr');
+  if(concEl){
+    concEl.innerHTML = D.map(d=>`<span style="display:inline-block;margin:3px 6px 3px 0;padding:2px 8px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:2px">${d.n}: <span style="color:#38bdf8;font-weight:600">${TOP_INSTR[d.n]}</span> ${d.conc.toFixed(1)}%</span>`).join('');
+  }
+}
+
+// ── TAB 3: DEMANDA ───────────────────────────────────────────────────────────
+function buildDemandaCharts(){
+  charts.b2c=true;
+  mkLine('cB2C',[{label:'B2C',data:D.map(d=>d.b2c),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:D.map(d=>d.b2c>1.25?'#10b981':'#38bdf8'),tension:.3,fill:true}],
+    v=>`${v}x`,v=>`${v.toFixed(2)}x`,{y:{...YA(v=>`${v}x`),min:1}});
+  const DRech = D.filter(d=>d.rech!=null);
+  const LBRech = DRech.map(d=>{
+    const months = {ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06',jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12'};
+    const [day, mon] = d.f.split('-');
+    return `${day}/${months[mon]}/26`;
+  });
+  mkBarLbl('cRech',LBRech,DRech.map(d=>d.rech),'rgba(239,68,68,.45)','#ef4444',v=>`${v}%`,v=>`${v.toFixed(1)}%`);
+}
+
+// ── TAB 4: HARD DOLLAR ───────────────────────────────────────────────────────
+function buildHDCharts(){
+  charts.hd=true;
+  new Chart(document.getElementById('cHD'),{type:'bar',
+    data:{labels:LB,datasets:[
+      {label:'Ofertado',data:D.map(d=>d.hd_of),backgroundColor:'rgba(236,72,153,.25)',borderColor:'#ec4899',borderWidth:1,borderRadius:2},
+      {label:'Adjudicado',data:D.map(d=>d.hd_adj),backgroundColor:'rgba(236,72,153,.7)',borderColor:'#ec4899',borderWidth:1,borderRadius:2},
+    ]},
+    options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label}: USD ${c.raw}mn`}}},
+      scales:{x:XA,y:YA(v=>`USD ${v}mn`)}}});
+  let ac=0;
+  mkLine('cHDacum',[{label:'HD acum',data:D.map(d=>{ac+=d.hd_adj;return ac}),borderColor:'#ec4899',backgroundColor:'rgba(236,72,153,.1)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#ec4899',tension:.3,fill:true}],
+    v=>`USD ${v}mn`,v=>`USD ${v}mn acum.`);
+  mkBar('cHDpct',D.map(d=>d.hd_pct),'rgba(236,72,153,.5)','#ec4899',
+    v=>`${v}%`,v=>`${v.toFixed(1)}%`);
+}
+
+// ── TAB 5: TABLA ─────────────────────────────────────────────────────────────
+function buildTabla(){
+  charts.tabla=true;
+  const tb=document.getElementById('tBody');
+  D_TABLA.forEach((d,idx)=>{
+    const rc=d.ro==null?'vna':(d.ro>=1?'vup':'vdn');
+    const ac=d.abs==null?'vna':(d.abs>=0?'vup':'vdn');
+    const m2c=d.absM2==null?'vna':(d.absM2>=0?'vup':'vdn');
+    const absUSD = d.abs==null? null : Math.round(d.abs*1e12/TC/1e6);
+    tb.innerHTML+=`<tr ${idx===0?'style="background:rgba(56,189,248,0.1);font-weight:600"':''}>
+      <td>${d.n.split('-')[1]}</td><td>${d.f} 2026</td>
+      <td>${d.venc==null?'s/d':'$'+d.venc.toFixed(2)}</td><td>$${d.adj.toFixed(2)}</td><td>$${d.of.toFixed(2)}</td>
+      <td class="${rc}">${d.ro==null?'s/d':(d.ro*100).toFixed(1)+'%'}</td><td>${d.ro_acum==null?'s/d':d.ro_acum.toFixed(1)+'%'}</td>
+      <td class="${ac}">${d.abs==null?'s/d':(d.abs>=0?'+':'')+d.abs.toFixed(2)+'bn'}</td>
+      <td class="${m2c}">${d.absM2==null?'s/d':(d.absM2>=0?'+':'')+d.absM2.toFixed(2)+'%'}</td>
+      <td class="${ac}">${absUSD==null?'s/d':'USD '+(absUSD>=0?'+'+absUSD:absUSD)+'mn'}</td>
+      <td>${d.b2c.toFixed(2)}x</td>
+      <td>${d.wve}d</td>
+      <td>${d.shares.L.toFixed(1)}%</td><td>${d.shares.C.toFixed(1)}%</td>
+      <td>${d.shares.T.toFixed(1)}%</td><td>${d.shares.D.toFixed(1)}%</td><td>${d.shares.X.toFixed(1)}%</td>
+      <td>USD ${d.hd_adj}mn</td>
+    </tr>`;
+  });
+}
+
+// ── TAB 6: CALENDARIO ────────────────────────────────────────────────────────
+const CRONOGRAMA = [
+  ["2026-01-12","llamado"],["2026-01-14","licitacion"],["2026-01-16","liquidacion"],
+  ["2026-01-26","llamado"],["2026-01-28","licitacion"],["2026-01-30","liquidacion"],
+  ["2026-02-09","llamado"],["2026-02-11","licitacion"],["2026-02-13","liquidacion"],
+  ["2026-02-23","llamado"],["2026-02-25","licitacion"],["2026-02-27","liquidacion"],
+  ["2026-03-10","llamado"],["2026-03-12","licitacion"],["2026-03-16","liquidacion"],
+  ["2026-03-25","llamado"],["2026-03-27","licitacion"],["2026-03-31","liquidacion"],
+  ["2026-04-13","llamado"],["2026-04-15","licitacion"],["2026-04-17","liquidacion"],
+  ["2026-04-24","llamado"],["2026-04-28","licitacion"],["2026-04-30","liquidacion"],
+  ["2026-05-11","llamado"],["2026-05-13","licitacion"],["2026-05-15","liquidacion"],
+  ["2026-05-22","llamado"],["2026-05-27","licitacion"],["2026-05-29","liquidacion"],
+  ["2026-06-08","llamado"],["2026-06-10","licitacion"],["2026-06-12","liquidacion"],
+  ["2026-06-24","llamado"],["2026-06-26","licitacion"],["2026-06-30","liquidacion"],
+  ["2026-07-13","llamado"],["2026-07-15","licitacion"],["2026-07-17","liquidacion"],
+  ["2026-07-27","llamado"],["2026-07-29","licitacion"],["2026-07-31","liquidacion"],
+  ["2026-08-10","llamado"],["2026-08-12","licitacion"],["2026-08-14","liquidacion"],
+  ["2026-08-25","llamado"],["2026-08-27","licitacion"],["2026-08-31","liquidacion"],
+  ["2026-09-09","llamado"],["2026-09-11","licitacion"],["2026-09-15","liquidacion"],
+  ["2026-09-24","llamado"],["2026-09-28","licitacion"],["2026-09-30","liquidacion"],
+  ["2026-10-09","llamado"],["2026-10-14","licitacion"],["2026-10-16","liquidacion"],
+  ["2026-10-26","llamado"],["2026-10-28","licitacion"],["2026-10-30","liquidacion"],
+  ["2026-11-09","llamado"],["2026-11-11","licitacion"],["2026-11-13","liquidacion"],
+  ["2026-11-24","llamado"],["2026-11-26","licitacion"],["2026-11-30","liquidacion"],
+  ["2026-12-09","llamado"],["2026-12-11","licitacion"],["2026-12-15","liquidacion"],
+];
+
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DIAS  = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+
+function buildCalendario(){
+  charts.cal=true;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const eventMap = {};
+  CRONOGRAMA.forEach(([d,t])=>{ eventMap[d]=t; });
+
+  // Próximas fechas
+  const proximas = CRONOGRAMA
+    .filter(([d])=> new Date(d+"T00:00:00") >= today)
+    .slice(0,8);
+  const proxEl = document.getElementById('proximasList');
+  proximas.forEach(([d,t])=>{
+    const dt = new Date(d+"T12:00:00");
+    const dateStr = dt.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+    proxEl.innerHTML += `<div class="prox-row">
+      <span class="prox-date">${d.slice(8)}/${d.slice(5,7)}</span>
+      <span class="prox-type pt-${t}">${t}</span>
+      <span class="prox-dias">${dateStr}</span>
+    </div>`;
+  });
+
+  // Calendario por mes
+  const calGrid = document.getElementById('calGrid');
+  for(let m=0; m<12; m++){
+    const year=2026, monthIdx=m;
+    const firstDay = new Date(year,monthIdx,1).getDay();
+    const daysInMonth = new Date(year,monthIdx+1,0).getDate();
+
+    let html = `<div class="cal-month"><h3>${MESES[m]}</h3><div class="cal-days">`;
+    DIAS.forEach(d=>{ html+=`<div class="cal-header">${d}</div>`; });
+    for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+    for(let day=1;day<=daysInMonth;day++){
+      const ds = `${year}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const evt = eventMap[ds]||'normal';
+      const todayStr = today.toISOString().slice(0,10); const isToday = ds === todayStr;
+      const dsDate = new Date(ds+"T00:00:00"); const isPast = dsDate < today;
+      html+=`<div class="cal-day ${evt}${isToday?' hoy':''}${isPast?' pasado':''}">${day}</div>`;
+    }
+    html+=`</div></div>`;
+    calGrid.innerHTML+=html;
+  }
+}
+
+// ── TAB 7: PERFIL DE VENCIMIENTOS ────────────────────────────────────────────
+const VENC_DATA = {
+  labels: ["Q3 '26","Q4 '26","2027","2028+"],
+  totals: [30.36, 24.70, 25.59, 39.44],
+  pcts:   [25.3,  20.6,  21.3,  32.8],
+  colors: ['#eab308','#22c55e','#38bdf8','#10b981'],
+  byType: {
+    Lecap: [20.00, 20.93, 5.91, 0],
+    CER:   [2.48,  3.02,  8.35, 13.40],
+    TAMAR: [2.88,  0,     7.92, 5.42],
+    DL:    [5.00,  0.75,  3.41, 1.24],
+    Dual:  [0,     0,     0,    19.38],
+  }
+};
+
+function buildVencPerfil(){
+  charts.venc=true;
+
+  // Chart 1: bar por período
+  new Chart(document.getElementById('cVencPerfil'),{
+    type:'bar',
+    data:{
+      labels: VENC_DATA.labels,
+      datasets:[{
+        data: VENC_DATA.totals,
+        backgroundColor: VENC_DATA.colors,
+        borderColor: VENC_DATA.colors,
+        borderWidth:1, borderRadius:3,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT, callbacks:{
+          label: c => `$${c.raw.toFixed(2)}bn (${VENC_DATA.pcts[c.dataIndex]}%)`
+        }},
+        datalabels: {display:false}
+      },
+      scales:{
+        x: XA,
+        y:{...YA(v=>`$${v}bn`), min:0}
+      }
+    }
+  });
+
+  // Chart 2: stacked bar por tipo dentro de cada período
+  new Chart(document.getElementById('cVencTipo'),{
+    type:'bar',
+    data:{
+      labels: VENC_DATA.labels,
+      datasets:[
+        {label:'Lecap', data:VENC_DATA.byType.Lecap, backgroundColor:'#3b82f6', stack:'a'},
+        {label:'CER',   data:VENC_DATA.byType.CER,   backgroundColor:'#22c55e', stack:'a'},
+        {label:'TAMAR', data:VENC_DATA.byType.TAMAR, backgroundColor:'#eab308', stack:'a'},
+        {label:'DL',    data:VENC_DATA.byType.DL,    backgroundColor:'#f97316', stack:'a'},
+        {label:'Dual',  data:VENC_DATA.byType.Dual,  backgroundColor:'#a855f7', stack:'a'},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{legend:{display:false}, tooltip:{...TT, callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toFixed(2)}bn`}}},
+      scales:{x:{...XA,stacked:true}, y:{...YA(v=>`$${v}bn`),stacked:true}}
+    }
+  });
+
+  // Chart 3: acumulado (excl Q1, Q2 ya vencidos)
+  const lbls = ["Q3 '26","Q4 '26","2027","2028+"];
+  const vals = [30.13, 21.08, 24.94, 39.44];
+  let ac=0;
+  const acum = vals.map(v=>{ac+=v;return +ac.toFixed(2)});
+  new Chart(document.getElementById('cVencAcum'),{
+    type:'line',
+    data:{labels:lbls, datasets:[{
+      label:'Acum.',data:acum,
+      borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,0.08)',
+      borderWidth:2,pointRadius:5,pointBackgroundColor:'#38bdf8',tension:.3,fill:true
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`Acum. hasta ${lbls[c.dataIndex]}: $${c.raw}bn`}}},
+      scales:{x:XA,y:{...YA(v=>`$${v}bn`),min:0}}
+    }
+  });
+}
+
+// patch showTab to handle tab 7
+const _origShowTab = showTab;
+window.showTab = function(i){
+  _origShowTab(i);
+  if(i===7 && !charts.venc) buildVencPerfil();
+};
+
+// ── TAB 8: CONVERSIONES ─────────────────────────────────────────────────────
+const CONV_ROWS = [
+  // lic,   fecha,    op,  rescatado,  venc_orig,    bucket_orig, vno_resc,        nuevo,   venc_nuevo,   bucket_dest, ve_equiv,   precio,      tirea
+  ["05","12-mar","1","TZX26","30/06/2026","Q2 '26","317.068",        "TMG27","31/08/2027","2027",    "1.171.673","6,00% TEM","38,65%"],
+  ["05","12-mar","2","TZX26","30/06/2026","Q2 '26","220.477",        "TZXM8","31/03/2028","2028+",   "814.737",  "$884,40",  "6,33%"],
+  ["05","12-mar","3","TZX26","30/06/2026","Q2 '26","55.167",         "TZXM9","28/03/2029","2028+",   "203.862",  "$800,00",  "7,74%"],
+  ["06","27-mar (*)","1","TZX26","30/06/2026","Q2 '26","s/d",        "TMG27","31/08/2027","2027",    "s/d",      "s/d",      "s/d"],
+  ["06","27-mar (*)","2","TZX26","30/06/2026","Q2 '26","s/d",        "TZXM8","31/03/2028","2028+",   "s/d",      "s/d",      "s/d"],
+  ["06","27-mar (*)","3","TZX26","30/06/2026","Q2 '26","s/d",        "TZXM9","28/03/2029","2028+",   "s/d",      "s/d",      "s/d"],
+  ["07","15-abr","1","TZXD6","15/12/2026","Q4 '26","4.741.027",      "TZXM8","31/03/2028","2028+",   "13.044.129","$904,37", "6,35%"],
+  ["07","15-abr","2","TZXM7","31/03/2027","2027",  "316.662",        "TZXM8","31/03/2028","2028+",   "649.245",  "$904,37",  "6,35%"],
+  ["07","15-abr","3","TTS26","15/09/2026","Q3 '26","1.251.955",      "TMF28","25/02/2028","2028+",   "1.921.225","6,50% TEM","35,27%"],
+  ["08","28-abr","1","TZV26","30/06/2026","Q2 '26","USD 289mn",      "TZV28","30/06/2028","2028+",   "USD 286mn","USD 850",  "7,83%"],
+  ["08","28-abr","2","TTD26","15/12/2026","Q4 '26","4.576.957",      "TMF28","25/02/2028","2028+",   "7.052.449","$1.007,00","33,44%"],
+  ["08","28-abr","3","M31G6","31/08/2026","Q3 '26","892.921",        "TMF28","25/02/2028","2028+",   "1.067.675","$1.007,00","33,44%"],
+  ["08","28-abr","4","TZXD6","15/12/2026","Q4 '26","191.607",        "TZXM8","31/03/2028","2028+",   "530.647",  "$910,00",  "6,72%"],
+  ["11","10-jun","1","TZX26","30/06/2026","Q2 '26","74.442",         "TXMD8","15/12/2028","2028+",   "291.585",  "$898,00",  "CER 4,51%"],
+  ["11","10-jun","2","TZX26","30/06/2026","Q2 '26","155.270",        "TXMD9","14/12/2029","2028+",   "608.187",  "$828,00",  "CER 5,63%"],
+  ["11","10-jun","3","TZX26","30/06/2026","Q2 '26","232.109",        "TXMJ0","28/06/2030","2028+",   "909.164",  "$789,00",  "CER 6,12%"],
+  ["11","10-jun","4","TTJ26","30/06/2026","Q2 '26","507.725",        "TXMD8","15/12/2028","2028+",   "818.199",  "$898,00",  "CER 4,51%"],
+  ["11","10-jun","5","TTJ26","30/06/2026","Q2 '26","254.065",        "TXMD9","14/12/2029","2028+",   "409.425",  "$828,00",  "CER 5,63%"],
+];
+
+const BUCKETS = ["Q3 '26","Q4 '26","2027","2028+"];
+const SALIDAS  = {}, LLEGADAS = {};
+BUCKETS.forEach(b=>{SALIDAS[b]=0;LLEGADAS[b]=0;});
+
+CONV_ROWS.forEach(r=>{
+  const ve = parseFloat(r[10].replace(/\./g,'').replace(',','.'));
+  if(isNaN(ve)||r[10]==='s/d'||r[10].includes('USD')) return;
+  SALIDAS[r[5]]  += ve/1e6;
+  LLEGADAS[r[9]] += ve/1e6;
+});
+
+function buildConversiones(){
+  charts.conv = true;
+
+  // Chart 1: grouped bar salidas vs llegadas
+  new Chart(document.getElementById('cConvFlow'),{
+    type:'bar',
+    data:{
+      labels: BUCKETS,
+      datasets:[
+        {label:'Salió',   data:BUCKETS.map(b=>+SALIDAS[b].toFixed(2)),  backgroundColor:'rgba(239,68,68,0.7)', borderColor:'#ef4444',borderWidth:1,borderRadius:2},
+        {label:'Llegó',   data:BUCKETS.map(b=>+LLEGADAS[b].toFixed(2)), backgroundColor:'rgba(16,185,129,0.7)',borderColor:'#10b981',borderWidth:1,borderRadius:2},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toFixed(2)}B`}}},
+      scales:{x:XA,y:{...YA(v=>`$${v}B`),min:0}}
+    }
+  });
+
+  // Chart 2: neto por bucket
+  const netos = BUCKETS.map(b=>+((LLEGADAS[b]-SALIDAS[b]).toFixed(2)));
+  new Chart(document.getElementById('cConvNeto'),{
+    type:'bar',
+    data:{
+      labels:BUCKETS,
+      datasets:[{
+        data:netos,
+        backgroundColor:netos.map(v=>v>=0?'rgba(16,185,129,0.7)':'rgba(239,68,68,0.7)'),
+        borderColor:netos.map(v=>v>=0?'#10b981':'#ef4444'),
+        borderWidth:1,borderRadius:2,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`Neto: ${c.raw>=0?'+':''}${c.raw.toFixed(2)}B`}}},
+      scales:{x:XA,y:{...YA(v=>`${v>=0?'+':''}${v}B`)}}
+    }
+  });
+
+  // Table
+  const tb = document.getElementById('convDetailBody');
+  const bColor = {"Q3 '26":"rgba(239,68,68,0.15)","Q4 '26":"rgba(239,68,68,0.25)","2027":"rgba(16,185,129,0.1)","2028+":"rgba(16,185,129,0.15)"};
+  tb.innerHTML = CONV_ROWS.map(r=>`<tr>
+    <td style="text-align:left">Lic ${r[0]} · ${r[1]}</td>
+    <td style="text-align:left;color:var(--muted)">Op. ${r[2]}</td>
+    <td style="text-align:left;color:var(--red);font-weight:600">${r[3]}</td>
+    <td>${r[4]}</td>
+    <td style="background:${bColor[r[5]]||''}">${r[5]}</td>
+    <td>${r[6]}</td>
+    <td style="text-align:left;color:var(--green);font-weight:600">${r[7]}</td>
+    <td>${r[8]}</td>
+    <td style="background:${bColor[r[9]]||''}">${r[9]}</td>
+    <td>${r[10]}</td>
+    <td>${r[11]}</td>
+    <td>${r[12]}</td>
+  </tr>`).join('');
+}
+
+// patch showTab
+const _st2 = window.showTab;
+window.showTab = function(i){
+  _st2(i);
+  if(i===8 && !charts.conv) buildConversiones();
+};
+
+</script>
+</body>
+</html>
