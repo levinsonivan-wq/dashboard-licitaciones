@@ -467,9 +467,9 @@ const D = [
 const D_TABLA = [D[D.length-1], ...D.slice(0, D.length-1)];
 
 // ── VENCIMIENTOS DE PRÓXIMAS LICITACIONES (calendario quincenal, $bn) ──
-// Se actualiza licitación a licitación. Formato: {l:"etiqueta eje X", v:monto en $bn}.
+// Se actualiza licitación a licitación. Formato: {l:"etiqueta eje X", v:monto en $bn, vencido:true (opcional, marca el bucket como ya pasado -> se pinta naranja como el resto de "ya vencido")}.
 const VENC_PROXIMAS = [
-  {l:"Mid sept-26", v:8.1},  {l:"sept-26",     v:13.5},
+  {l:"Mid sept-26", v:8.1, vencido:true},  {l:"sept-26",     v:13.5},
   {l:"Mid oct-26",  v:4.9},  {l:"oct-26",      v:14.6},
   {l:"Mid nov-26",  v:6.0},  {l:"nov-26",      v:21.1},
   {l:"Mid dic-26",  v:35.1}, {l:"Mid ene-27",  v:17.0},
@@ -898,8 +898,8 @@ function buildVencReal(){
   const dataFuturo = VENC_PROXIMAS.map(x=>x.v);
   const labels = [...lblsVR, ...labelsFuturo];
   const data = [...real, ...dataFuturo];
-  const bg = [...real.map(()=>'rgba(251,146,60,.6)'), ...dataFuturo.map(()=>'rgba(34,197,94,.55)')];
-  const bc = [...real.map(()=>'#fb923c'), ...dataFuturo.map(()=>'#22c55e')];
+  const bg = [...real.map(()=>'rgba(251,146,60,.6)'), ...VENC_PROXIMAS.map(x=>x.vencido?'rgba(251,146,60,.6)':'rgba(34,197,94,.55)')];
+  const bc = [...real.map(()=>'#fb923c'), ...VENC_PROXIMAS.map(x=>x.vencido?'#fb923c':'#22c55e')];
   new Chart(document.getElementById('cVencTimeline'),{type:'bar',
     data:{labels,datasets:[{data,backgroundColor:bg,borderColor:bc,borderWidth:1,borderRadius:2}]},
     options:{...BASE,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>`$${c.raw.toFixed(2)}bn`}}},
