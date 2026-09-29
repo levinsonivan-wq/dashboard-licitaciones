@@ -168,7 +168,7 @@ select:focus{border-color:var(--accent)}
 <div class="topbar">
   <div>
     <h1>TESORO NACIONAL — LICITACIONES 2026</h1>
-    <p>Secretaría de Finanzas · Ene–Sep 2026 · 17 licitaciones · 135 instrumentos · TC Com. A3500: $1.512,996 (10-sep-26)</p>
+    <p>Secretaría de Finanzas · Ene–Sep 2026 · 18 licitaciones · 140 instrumentos · TC Com. A3500: $1.523,966 (24-sep-26)</p>
   </div>
   <div class="tag">ARG MACRO DESK</div>
 </div>
@@ -208,7 +208,8 @@ select:focus{border-color:var(--accent)}
       <option value="13">2026-14 · 29 jul 2026</option>
       <option value="14">2026-15 · 12 ago 2026</option>
       <option value="15">2026-16 · 27 ago 2026</option>
-      <option value="16" selected>2026-17 · 11 sep 2026</option>
+      <option value="16">2026-17 · 11 sep 2026</option>
+      <option value="17" selected>2026-18 · 25 sep 2026</option>
     </select>
   </div>
   <div class="lic-summary" id="licSummary"></div>
@@ -264,12 +265,12 @@ select:focus{border-color:var(--accent)}
 <!-- ══ TAB 1: ROLLOVER ══ -->
 <div class="tab-panel" id="tab1">
   <div class="kpis">
-    <div class="kpi ca"><div class="kl">Total Adjudicado</div><div class="kv">$160.3bn</div><div class="ks">Suma VE pesos+DL · 17 lic.</div></div>
-    <div class="kpi cg"><div class="kl">Rollover promedio</div><div class="kv">115.4%</div><div class="ks">Prom. simple 17 lic.</div></div>
+    <div class="kpi ca"><div class="kl">Total Adjudicado</div><div class="kv">$168.9bn</div><div class="ks">Suma VE pesos+DL · 18 lic.</div></div>
+    <div class="kpi cg"><div class="kl">Rollover promedio</div><div class="kv">114.5%</div><div class="ks">Prom. simple 18 lic.</div></div>
     <div class="kpi cr"><div class="kl">Absorción neta acum.</div><div class="kv">+$15.4bn</div><div class="ks">4 inyecciones netas (lic.1, lic.4, lic.12 y lic.16)</div></div>
-    <div class="kpi cy"><div class="kl">HD Adj. acumulado</div><div class="kv">USD 3.717mn</div><div class="ks">TC $1.514,16 · Com. A3500 (26-ago-26) · lic.16 y 17 sin HD</div></div>
-    <div class="kpi cp"><div class="kl">Rollover acum. 2026</div><div class="kv">110.6%</div><div class="ks">Al 11-sep-26 · Σ$160.3bn adj. / Σ$144.9bn venc.</div></div>
-    <div class="kpi cpk"><div class="kl">Licitaciones >100%</div><div class="kv">13 / 17</div><div class="ks">4 con emisión neta</div></div>
+    <div class="kpi cy"><div class="kl">HD Adj. acumulado</div><div class="kv">USD 3.717mn</div><div class="ks">TC $1.514,16 · Com. A3500 (26-ago-26) · lic.16, 17 y 18 sin HD</div></div>
+    <div class="kpi cp"><div class="kl">Rollover acum. 2026</div><div class="kv">110.0%</div><div class="ks">Al 25-sep-26 · Σ$168.9bn adj. / Σ$153.6bn venc.</div></div>
+    <div class="kpi cpk"><div class="kl">Licitaciones >100%</div><div class="kv">14 / 18</div><div class="ks">4 con emisión neta</div></div>
   </div>
   <div class="g3">
     <div class="panel"><div class="pt"><i class="ig"></i>Rollover por Licitación (%)</div><canvas id="cRollover"></canvas><div class="src">Verde >100% · Rojo &lt;100% · Fuentes: Ámbito, Infobae, Banco Provincia, comunicados Finanzas</div></div>
@@ -285,7 +286,7 @@ select:focus{border-color:var(--accent)}
       <div class="pt"><i class="io"></i>Vencimientos — Pasado (pesos de hoy) + Próximas Licitaciones ($bn)</div>
       <canvas id="cVencTimeline" style="max-height:280px"></canvas>
       <div class="leg"><div class="li"><div class="ld" style="background:#fb923c"></div>Ya vencido (licitaciones pasadas)</div><div class="li"><div class="ld" style="background:#22c55e"></div>Próximo (calendario quincenal)</div></div>
-      <div class="src">Pasado: nominal ene–ago-26 llevado a precios de ago-26 (IPC INDEC) ≈ hoy, lic.17 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
+      <div class="src">Pasado: nominal ene–ago-26 llevado a precios de ago-26 (IPC INDEC) ≈ hoy, lic.17 y 18 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
     </div>
   </div>
 </div>
@@ -463,6 +464,7 @@ const D = [
   {n:"2026-15",f:"12-ago",venc:4.48, adj:4.49, of:6.49, ro:1.0026, abs:0.01, absM2:0.01, b2c:1.44,rech:30.7,wve:111,wvno:111, conc:73.2,shares:{L:73.2,C:14.4,T:0,   D:12.4,X:0},   hd_adj:47, hd_of:67, hd_pct:1.5, ro_acum:112.5,ofertas:5077},
   {n:"2026-16",f:"27-ago",venc:12.60, adj:12.16, of:13.18,ro:0.9655,   abs:-0.44, absM2:null, b2c:1.08,rech:7.70,wve:142,wvno:null, conc:50.0,shares:{L:89.7,C:6.9, T:0,   D:3.4, X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:111.0, ofertas:4610},
   {n:"2026-17",f:"11-sep",venc:8.13,  adj:8.41,  of:14.17,ro:1.0346,   abs:0.28,  absM2:null, b2c:1.68,rech:40.6, wve:135,wvno:133,  conc:48.4,shares:{L:48.4,C:8.2, T:31.8,D:11.7,X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:110.6, ofertas:5010},
+  {n:"2026-18",f:"25-sep",venc:8.62,  adj:8.62,  of:9.77, ro:1.0008,   abs:0.00,  absM2:null, b2c:1.13,rech:11.8, wve:181,wvno:230,  conc:33.9,shares:{L:33.0,C:11.9,T:33.9,D:21.2,X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:110.0, ofertas:3302},
 ];
 const D_TABLA = [D[D.length-1], ...D.slice(0, D.length-1)];
 
@@ -656,6 +658,13 @@ const INSTRS = {
     {t:"D30N6",d:"DL – vto 30-nov-26 (nueva)",tp:"DL",nr:"Nueva",v:"30/11/2026",p:80,vno_of:"USD 136",vno_adj:"USD 63",ve_adj:"93.697",circ:"USD 4.153",sh:"1.1%",tasa:"7.42%",tt:"TNA",pc:"USD 985.20",tirea:"7.42%",pror:"—"},
     {t:"D31M7",d:"DL – vto 31-mar-27",tp:"DL",nr:"Reap.",v:"31/03/2027",p:201,vno_of:"USD 275",vno_adj:"USD 154",ve_adj:"224.105",circ:"USD 4.244",sh:"2.7%",tasa:"7.58%",tt:"TNA",pc:"USD 961.00",tirea:"7.58%",pror:"—"},
     {t:"TZV27",d:"DL – vto 30-jun-27",tp:"DL",nr:"Reap.",v:"30/06/2027",p:292,vno_of:"USD 169",vno_adj:"USD 134",ve_adj:"194.090",circ:"USD 4.224",sh:"2.3%",tasa:"5.24%",tt:"TNA",pc:"USD 960.35",tirea:"5.24%",pror:"—"},
+  ],
+  17:[
+    {t:"T15E7",d:"Boncap – vto 15-ene-27",tp:"Lecap",nr:"Reap.",v:"15/01/2027",p:112,vno_of:"2.171.556",vno_adj:"1.905.831",ve_adj:"2.848.264",circ:"12.482.247",sh:"33.0%",tasa:"2.17%",tt:"TEM",pc:"1494.50",tirea:"29.36%",pror:"—"},
+    {t:"TZXY7",d:"CER – vto 31-may-27",tp:"CER",nr:"Reap.",v:"31/05/2027",p:248,vno_of:"1.102.322",vno_adj:"834.572",ve_adj:"1.023.185",circ:"4.205.599",sh:"11.9%",tasa:"—",tt:"CER+",pc:"1226.00",tirea:"5.97%",pror:"—"},
+    {t:"TML27",d:"TAMAR – vto 30-jul-27",tp:"TAMAR",nr:"Reap.",v:"30/07/2027",p:308,vno_of:"2.813.360",vno_adj:"2.681.893",ve_adj:"2.920.581",circ:"6.300.226",sh:"33.9%",tasa:"TAMAR+363pb",tt:"TAMAR+",pc:"1089.00",tirea:"30.84%",pror:"—"},
+    {t:"D30O6",d:"DL – vto 30-oct-26",tp:"DL",nr:"Reap.",v:"30/10/2026",p:35,vno_of:"USD 841",vno_adj:"USD 774",ve_adj:"1.171.108",circ:"USD 5.348",sh:"13.6%",tasa:"9.06%",tt:"TNA",pc:"USD 992.80",tirea:"9.06%",pror:"—"},
+    {t:"D30N6",d:"DL – vto 30-nov-26",tp:"DL",nr:"Reap.",v:"30/11/2026",p:66,vno_of:"USD 529",vno_adj:"USD 437",ve_adj:"658.787",circ:"USD 1.344",sh:"7.6%",tasa:"7.38%",tt:"TNA",pc:"USD 988.20",tirea:"7.38%",pror:"—"},
   ]
 };
 
