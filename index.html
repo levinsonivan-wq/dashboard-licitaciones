@@ -168,7 +168,7 @@ select:focus{border-color:var(--accent)}
 <div class="topbar">
   <div>
     <h1>TESORO NACIONAL — LICITACIONES 2026</h1>
-    <p>Secretaría de Finanzas · Ene–Sep 2026 · 18 licitaciones · 140 instrumentos · TC Com. A3500: $1.523,966 (24-sep-26)</p>
+    <p>Secretaría de Finanzas · Ene–Oct 2026 · 19 licitaciones · 144 instrumentos · TC Com. A3500: $1.515,854 (13-oct-26)</p>
   </div>
   <div class="tag">ARG MACRO DESK</div>
 </div>
@@ -209,7 +209,8 @@ select:focus{border-color:var(--accent)}
       <option value="14">2026-15 · 12 ago 2026</option>
       <option value="15">2026-16 · 27 ago 2026</option>
       <option value="16">2026-17 · 11 sep 2026</option>
-      <option value="17" selected>2026-18 · 25 sep 2026</option>
+      <option value="17">2026-18 · 25 sep 2026</option>
+      <option value="18" selected>2026-19 · 14 oct 2026</option>
     </select>
   </div>
   <div class="lic-summary" id="licSummary"></div>
@@ -265,12 +266,12 @@ select:focus{border-color:var(--accent)}
 <!-- ══ TAB 1: ROLLOVER ══ -->
 <div class="tab-panel" id="tab1">
   <div class="kpis">
-    <div class="kpi ca"><div class="kl">Total Adjudicado</div><div class="kv">$168.9bn</div><div class="ks">Suma VE pesos+DL · 18 lic.</div></div>
-    <div class="kpi cg"><div class="kl">Rollover promedio</div><div class="kv">114.5%</div><div class="ks">Prom. simple 18 lic.</div></div>
-    <div class="kpi cr"><div class="kl">Absorción neta acum.</div><div class="kv">+$15.4bn</div><div class="ks">4 inyecciones netas (lic.1, lic.4, lic.12 y lic.16)</div></div>
-    <div class="kpi cy"><div class="kl">HD Adj. acumulado</div><div class="kv">USD 3.717mn</div><div class="ks">TC $1.514,16 · Com. A3500 (26-ago-26) · lic.16, 17 y 18 sin HD</div></div>
-    <div class="kpi cp"><div class="kl">Rollover acum. 2026</div><div class="kv">110.0%</div><div class="ks">Al 25-sep-26 · Σ$168.9bn adj. / Σ$153.6bn venc.</div></div>
-    <div class="kpi cpk"><div class="kl">Licitaciones >100%</div><div class="kv">14 / 18</div><div class="ks">4 con emisión neta</div></div>
+    <div class="kpi ca"><div class="kl">Total Adjudicado</div><div class="kv">$175.5bn</div><div class="ks">Suma VE pesos+DL · 19 lic.</div></div>
+    <div class="kpi cg"><div class="kl">Rollover promedio</div><div class="kv">115.7%</div><div class="ks">Prom. simple 19 lic.</div></div>
+    <div class="kpi cr"><div class="kl">Absorción neta acum.</div><div class="kv">+$17.1bn</div><div class="ks">4 inyecciones netas (lic.1, lic.4, lic.12 y lic.16)</div></div>
+    <div class="kpi cy"><div class="kl">HD Adj. acumulado</div><div class="kv">USD 3.717mn</div><div class="ks">TC $1.514,16 · Com. A3500 (26-ago-26) · lic.16 a 19 sin HD</div></div>
+    <div class="kpi cp"><div class="kl">Rollover acum. 2026</div><div class="kv">110.8%</div><div class="ks">Al 14-oct-26 · Σ$175.5bn adj. / Σ$158.4bn venc.</div></div>
+    <div class="kpi cpk"><div class="kl">Licitaciones >100%</div><div class="kv">15 / 19</div><div class="ks">4 con emisión neta</div></div>
   </div>
   <div class="g3">
     <div class="panel"><div class="pt"><i class="ig"></i>Rollover por Licitación (%)</div><canvas id="cRollover"></canvas><div class="src">Verde >100% · Rojo &lt;100% · Fuentes: Ámbito, Infobae, Banco Provincia, comunicados Finanzas</div></div>
@@ -286,7 +287,7 @@ select:focus{border-color:var(--accent)}
       <div class="pt"><i class="io"></i>Vencimientos — Pasado (pesos de hoy) + Próximas Licitaciones ($bn)</div>
       <canvas id="cVencTimeline" style="max-height:280px"></canvas>
       <div class="leg"><div class="li"><div class="ld" style="background:#fb923c"></div>Ya vencido (licitaciones pasadas)</div><div class="li"><div class="ld" style="background:#22c55e"></div>Próximo (calendario quincenal)</div></div>
-      <div class="src">Pasado: nominal ene–ago-26 llevado a precios de ago-26 (IPC INDEC) ≈ hoy, lic.17 y 18 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
+      <div class="src">Pasado: nominal ene–sep-26 llevado a precios de sep-26 (IPC INDEC) ≈ hoy, lic.19 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
     </div>
   </div>
 </div>
@@ -465,13 +466,14 @@ const D = [
   {n:"2026-16",f:"27-ago",venc:12.60, adj:12.16, of:13.18,ro:0.9655,   abs:-0.44, absM2:null, b2c:1.08,rech:7.70,wve:142,wvno:null, conc:50.0,shares:{L:89.7,C:6.9, T:0,   D:3.4, X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:111.0, ofertas:4610},
   {n:"2026-17",f:"11-sep",venc:8.13,  adj:8.41,  of:14.17,ro:1.0346,   abs:0.28,  absM2:null, b2c:1.68,rech:40.6, wve:135,wvno:133,  conc:48.4,shares:{L:48.4,C:8.2, T:31.8,D:11.7,X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:110.6, ofertas:5010},
   {n:"2026-18",f:"25-sep",venc:8.62,  adj:8.62,  of:9.77, ro:1.0008,   abs:0.00,  absM2:null, b2c:1.13,rech:11.8, wve:181,wvno:230,  conc:33.9,shares:{L:33.0,C:11.9,T:33.9,D:21.2,X:0},   hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:110.0, ofertas:3302},
+  {n:"2026-19",f:"14-oct",venc:4.86,  adj:6.61,  of:9.49, ro:1.3614,   abs:1.75,  absM2:null, b2c:1.44,rech:30.3, wve:537,wvno:581,  conc:40.9,shares:{L:40.9,C:0,   T:17.5,D:0,   X:41.6}, hd_adj:0,  hd_of:0,  hd_pct:0,   ro_acum:110.8, ofertas:3360},
 ];
 const D_TABLA = [D[D.length-1], ...D.slice(0, D.length-1)];
 
 // ── VENCIMIENTOS DE PRÓXIMAS LICITACIONES (calendario quincenal, $bn) ──
 // Se actualiza licitación a licitación. Formato: {l:"etiqueta eje X", v:monto en $bn, vencido:true (opcional, marca el bucket como ya pasado -> se pinta naranja como el resto de "ya vencido")}.
 const VENC_PROXIMAS = [
-  {l:"Mid oct-26",  v:4.9},  {l:"oct-26",      v:18.3},
+  {l:"oct-26",      v:18.3},
   {l:"Mid nov-26",  v:10.2}, {l:"nov-26",      v:22.1},
   {l:"Mid dic-26",  v:35.4}, {l:"Mid ene-27",  v:20.0},
   {l:"ene-27",      v:4.7},  {l:"Mid feb-27",  v:0.0},
@@ -664,6 +666,12 @@ const INSTRS = {
     {t:"TML27",d:"TAMAR – vto 30-jul-27",tp:"TAMAR",nr:"Reap.",v:"30/07/2027",p:308,vno_of:"2.813.360",vno_adj:"2.681.893",ve_adj:"2.920.581",circ:"6.300.226",sh:"33.9%",tasa:"TAMAR+363pb",tt:"TAMAR+",pc:"1089.00",tirea:"30.84%",pror:"—"},
     {t:"D30O6",d:"DL – vto 30-oct-26",tp:"DL",nr:"Reap.",v:"30/10/2026",p:35,vno_of:"USD 841",vno_adj:"USD 774",ve_adj:"1.171.108",circ:"USD 5.348",sh:"13.6%",tasa:"9.06%",tt:"TNA",pc:"USD 992.80",tirea:"9.06%",pror:"—"},
     {t:"D30N6",d:"DL – vto 30-nov-26",tp:"DL",nr:"Reap.",v:"30/11/2026",p:66,vno_of:"USD 529",vno_adj:"USD 437",ve_adj:"658.787",circ:"USD 1.344",sh:"7.6%",tasa:"7.38%",tt:"TNA",pc:"USD 988.20",tirea:"7.38%",pror:"—"},
+  ],
+  18:[
+    {t:"S29E7",d:"Lecap – vto 29-ene-27",tp:"Lecap",nr:"Reap.",v:"29/01/2027",p:107,vno_of:"4.448.291",vno_adj:"2.597.093",ve_adj:"2.705.963",circ:"4.976.326",sh:"40.9%",tasa:"2.04%",tt:"TEM",pc:"1041.92",tirea:"27.47%",pror:"—"},
+    {t:"TMG28",d:"TAMAR – vto 31-ago-28",tp:"TAMAR",nr:"Reap.",v:"31/08/2028",p:687,vno_of:"1.220.204",vno_adj:"1.055.629",ve_adj:"1.156.970",circ:"6.449.527",sh:"17.5%",tasa:"TAMAR+932pb",tt:"TAMAR+",pc:"1096.00",tirea:"38.91%",pror:"—"},
+    {t:"TXMD9",d:"Dual CER/TAMAR – vto 14-dic-29",tp:"Dual",nr:"Reap.",v:"14/12/2029",p:1157,vno_of:"2.322.085",vno_adj:"1.941.291",ve_adj:"1.704.454",circ:"8.774.083",sh:"25.8%",tasa:"—",tt:"Dual",pc:"878.00",tirea:"CER 6.99%",pror:"—"},
+    {t:"TMVE8",d:"Dual TAMAR/DL – vto 31-ene-28",tp:"Dual",nr:"Reap.",v:"31/01/2028",p:474,vno_of:"USD 990",vno_adj:"USD 727",ve_adj:"1.042.888",circ:"USD 4.194",sh:"15.8%",tasa:"—",tt:"Dual",pc:"USD 946.46",tirea:"DL 4.35%",pror:"—"},
   ]
 };
 
@@ -884,21 +892,21 @@ function buildRolloverCharts(){
       scales:{x:XA,y:{...YA(v=>`${v>0?'+':''}${v}%`),position:'left'},y1:{...YA(v=>`USD ${v}mn`),position:'right',grid:{display:false}}}}});
 }
 
-// Vencimientos en términos reales — expresado en pesos de HOY (ago-26)
-// Se infla cada mes con el IPC oficial ene–ago-26 hasta el nivel de precios de ago-26.
-// lic.17 (11-sep) se deja constante (sin ajustar): está a ≤11 días de la fecha base, diferencia de precios despreciable.
-const IPC_MES = {ene:0.0291, feb:0.0290, mar:0.0340, abr:0.0259, may:0.0210, jun:0.0189, jul:0.0210, ago:0.017};
+// Vencimientos en términos reales — expresado en pesos de HOY (sep-26)
+// Se infla cada mes con el IPC oficial ene–sep-26 hasta el nivel de precios de sep-26.
+// lic.19 (14-oct) se deja constante (sin ajustar): sin IPC de octubre aún, diferencia de precios despreciable.
+const IPC_MES = {ene:0.0291, feb:0.0290, mar:0.0340, abr:0.0259, may:0.0210, jun:0.0189, jul:0.0210, ago:0.017, sep:0.019};
 function buildVencReal(){
-  const MES_ORD=['ene','feb','mar','abr','may','jun','jul','ago'];
+  const MES_ORD=['ene','feb','mar','abr','may','jun','jul','ago','sep'];
   // índice de precios acumulado, base dic-25=1.00
   let idx=1;
   const CPI_IDX={};
   MES_ORD.forEach(m=>{ idx*=(1+IPC_MES[m]); CPI_IDX[m]=idx; });
-  const CPI_HOY = CPI_IDX['ago']; // nivel de precios de referencia = último IPC oficial (ago-26) ≈ hoy
+  const CPI_HOY = CPI_IDX['sep']; // nivel de precios de referencia = último IPC oficial (sep-26) ≈ hoy
   const lblsVR = D.map(d=>d.f);
   const real = D.map(d=>{
     const m = d.f.split('-')[1];
-    const mult = CPI_IDX[m] ? (CPI_HOY / CPI_IDX[m]) : 1; // sep (lic.17) sin dato oficial → constante
+    const mult = CPI_IDX[m] ? (CPI_HOY / CPI_IDX[m]) : 1; // oct (lic.19) sin dato oficial → constante
     return +(d.venc * mult).toFixed(2);
   });
   // ── timeline unico: pasado (real) + proximo (VENC_PROXIMAS) en un solo grafico ──
