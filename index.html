@@ -734,7 +734,9 @@ Chart.defaults.layout.padding = {top:18,right:8};
 // Etiquetas de valor sobre barras (y puntos si son <=12). Se omiten en gráficos apilados y donde no entran.
 Chart.register({id:'valueLabels',
   afterDatasetsDraw(chart){
-    if(chart.options.plugins.valueLabels===false) return;
+    const vlOpt = chart.options.plugins.valueLabels;
+    if(vlOpt===false) return;
+    const cfg = (vlOpt && typeof vlOpt==='object') ? vlOpt : {};
     const sx = chart.options.scales && chart.options.scales.x;
     if(sx && sx.stacked) return;
     const ctx = chart.ctx; ctx.save();
@@ -753,13 +755,16 @@ Chart.register({id:'valueLabels',
       meta.data.forEach((el,i)=>{
         const v = ds.data[i];
         if(v==null || isNaN(v) || (isBar && +v===0)) return;
-        const t = fmt(+v);
-        const room = isBar ? el.width + (slot-el.width)*0.75 : slot;
-        if(ctx.measureText(t).width > room) fits = false;
+        const t = fmt(+v) + (cfg.suffix||'');
+        const room = cfg.rotate ? 11 : (isBar ? el.width + (slot-el.width)*0.75 : slot);
+        if((cfg.rotate ? 10 : ctx.measureText(t).width) > room) fits = false;
         draws.push([t, el.x, +v<0 ? el.y+4 : el.y-(isBar?4:8), +v<0]);
       });
       if(!fits) return; // si no entran todas, no se muestra ninguna (queda el tooltip)
-      draws.forEach(([t,x,y,neg])=>{ ctx.textBaseline = neg ? 'top' : 'bottom'; ctx.fillText(t,x,y); });
+      draws.forEach(([t,x,y,neg])=>{
+        if(cfg.rotate){ ctx.save(); ctx.translate(x,y); ctx.rotate(-Math.PI/2); ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(t,0,0); ctx.restore(); }
+        else { ctx.textBaseline = neg ? 'top' : 'bottom'; ctx.fillText(t,x,y); }
+      });
     });
     ctx.restore();
   }});
@@ -954,7 +959,7 @@ function buildRolloverCharts(){
        borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.08)',borderWidth:2,
        pointRadius:4,pointBackgroundColor:roMes.map(v=>v>=100?'#10b981':'#ef4444'),
        pointBorderColor:roMes.map(v=>v>=100?'#10b981':'#ef4444'),tension:0,fill:true}]},
-    options:{...BASE,plugins:{refLine:{y:100,label:'100%'},legend:{display:false},tooltip:{...TT,callbacks:{
+    options:{...BASE,plugins:{valueLabels:{suffix:'%'},refLine:{y:100,label:'100%'},legend:{display:false},tooltip:{...TT,callbacks:{
       label:c=>`${c.raw.toFixed(1)}% — ${agg[mesesL[c.dataIndex]].n} lic. · Adj $${agg[mesesL[c.dataIndex]].adj.toFixed(2)}bn / Venc $${agg[mesesL[c.dataIndex]].venc.toFixed(2)}bn`}}},
       scales:{x:XA,y:{...YA(v=>`${v}%`),min:75}}}});
   new Chart(document.getElementById('cOfAdj'),{type:'bar',
@@ -1007,6 +1012,8 @@ function buildVencReal(){
     v=>`$${v}bn`, v=>`$${v.toFixed(1)}bn`, {x:{...XA,ticks:{...XA.ticks,maxRotation:90,minRotation:90}}});
   const totF=VENC_PROXIMAS.reduce((a,x)=>a+x.v,0);
   chF.options.plugins.tooltip.callbacks.afterLabel=c=>`${(c.raw/totF*100).toFixed(1)}% del total por vencer ($${totF.toFixed(1)}bn)`;
+  chF.options.plugins.valueLabels={rotate:true};
+  chF.options.layout={padding:{top:36,right:8}};
   chF.update('none');
   document.getElementById('vencPreElec').innerHTML = `<span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Vencimiento pre elecciones</span><br><span style="font-size:20px;font-weight:600;color:var(--text)">$${preElec.toFixed(1)}bn</span> <span style="font-size:10px;color:var(--muted)">${VENC_PROXIMAS[0].l} → oct-27 (incl.)</span>`;
   // ── timeline unico: pasado (real) + proximo (VENC_PROXIMAS) en un solo grafico ──
