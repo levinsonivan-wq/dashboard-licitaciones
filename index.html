@@ -339,7 +339,7 @@ select:focus{border-color:var(--accent)}
     <div class="pt"><i class="ia"></i>Resumen Completo — todas las métricas</div>
     <div class="tw tw-sticky"><table>
       <thead><tr>
-        <th>N°</th><th>Fecha</th><th>Venc</th><th>Adj</th><th>Of</th>
+        <th>N°</th><th>Fecha</th><th>Venc</th><th>Adj</th>
         <th>Rollover</th><th>Ro Acum</th><th>Abs $bn</th>
         <th>B2C</th><th>WAM VE</th>
         <th>Lecap</th><th>CER</th><th>TAMAR</th><th>DL</th><th>Dual</th>
@@ -1103,7 +1103,7 @@ function buildTabla(){
     const ac=d.abs==null?'vna':(d.abs>=0?'vup':'vdn');
     tb.innerHTML+=`<tr ${idx===0?'class="row-latest" style="background:rgba(56,189,248,0.1);font-weight:600"':''}>
       <td>${d.n.split('-')[1]}</td><td>${d.f} 2026</td>
-      <td>${d.venc==null?'s/d':'$'+d.venc.toFixed(2)}</td><td>$${d.adj.toFixed(2)}</td><td>$${d.of.toFixed(2)}</td>
+      <td>${d.venc==null?'s/d':'$'+d.venc.toFixed(2)}</td><td>$${d.adj.toFixed(2)}</td>
       <td class="${rc}">${d.ro==null?'s/d':(d.ro*100).toFixed(1)+'%'}</td><td>${d.ro_acum==null?'s/d':d.ro_acum.toFixed(1)+'%'}</td>
       <td class="${ac}">${d.abs==null?'s/d':(d.abs>=0?'+':'')+d.abs.toFixed(2)+'bn'}</td>
       <td>${d.b2c.toFixed(2)}x</td>
