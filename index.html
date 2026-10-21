@@ -136,6 +136,7 @@ select:focus{border-color:var(--accent)}
 .tw-sticky thead th:nth-child(1),.tw-sticky thead th:nth-child(2){z-index:5}
 .tw-sticky tr.row-latest td:nth-child(1),.tw-sticky tr.row-latest td:nth-child(2){background-image:linear-gradient(rgba(56,189,248,.1),rgba(56,189,248,.1))}
 
+.no-of{color:var(--muted);font-style:italic}
 .top-share{font-weight:700;color:#fff;background:rgba(56,189,248,.22)}
 
 /* ── RESPONSIVE ── */
@@ -349,7 +350,7 @@ select:focus{border-color:var(--accent)}
       </tr></thead>
       <tbody id="tBody"></tbody>
     </table></div>
-    <div class="src">Vencimientos inferidos de rollover reportado excepto lic. 10, 13, 15 y 16 (oficiales)</div>
+    <div class="src">Vencimientos inferidos de rollover reportado excepto lic. 10, 13, 15 y 16 (oficiales)<br>N.O = No Ofrecido (el instrumento no se ofreció en esa licitación)</div>
   </div>
 </div>
 
@@ -1105,6 +1106,8 @@ function buildTabla(){
     const ac=d.abs==null?'vna':(d.abs>=0?'vup':'vdn');
     const mxSh=Math.max(d.shares.L,d.shares.C,d.shares.T,d.shares.D,d.shares.X);
     const tc=k=>(d.shares[k]===mxSh&&mxSh>0)?' class="top-share"':'';
+    const ins=INSTRS[D.indexOf(d)];
+    const cell=(k,t)=>{ const ofrecido=d.shares[k]>0||(ins&&ins.some(i=>i.tp===t)); return ofrecido?`<td${tc(k)}>${d.shares[k].toFixed(1)}%</td>`:'<td class="no-of">N.O</td>'; };
     tb.innerHTML+=`<tr ${idx===0?'class="row-latest" style="background:rgba(56,189,248,0.1);font-weight:600"':''}>
       <td>${d.n.split('-')[1]}</td><td>${d.f} 2026</td>
       <td>${d.venc==null?'s/d':'$'+d.venc.toFixed(2)}</td>
@@ -1112,8 +1115,7 @@ function buildTabla(){
       <td class="${ac}">${d.abs==null?'s/d':(d.abs>=0?'+':'')+d.abs.toFixed(2)+'bn'}</td>
       <td>${d.b2c.toFixed(2)}x</td>
       <td>${d.wve}d</td>
-      <td${tc('L')}>${d.shares.L.toFixed(1)}%</td><td${tc('C')}>${d.shares.C.toFixed(1)}%</td>
-      <td${tc('T')}>${d.shares.T.toFixed(1)}%</td><td${tc('D')}>${d.shares.D.toFixed(1)}%</td><td${tc('X')}>${d.shares.X.toFixed(1)}%</td>
+      ${cell('L','Lecap')}${cell('C','CER')}${cell('T','TAMAR')}${cell('D','DL')}${cell('X','Dual')}
       <td>USD ${d.hd_adj}mn</td>
     </tr>`;
   });
