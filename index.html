@@ -278,14 +278,16 @@ select:focus{border-color:var(--accent)}
     <div class="panel"><div class="pt"><i class="ia"></i>Rollover Acumulado 2026 (%)</div><canvas id="cRoAcum"></canvas><div class="src">Σ Adj. / Σ Vencimientos — acumulado licitación a licitación</div></div>
     <div class="panel"><div class="pt"><i class="ir"></i>Absorción Neta por Licitación ($bn)</div><canvas id="cAbs"></canvas><div class="src">VE Adjudicado – Vencimientos enfrentados</div></div>
   </div>
-  <div class="g2">
+  <div class="g3">
     <div class="panel"><div class="pt"><i class="ia"></i>Rollover por Mes (%)</div><canvas id="cRoMes"></canvas><div class="src">Ponderado: Σ Adj. / Σ Vencimientos del mes</div></div>
     <div class="panel"><div class="pt"><i class="ia"></i>Absorción Neta % M2 y MUSD</div><canvas id="cAbsM2"></canvas><div class="src">TC $1.474,74 (Com. A3500 14-jul-26) · M2 total estimado por fecha · lic.16 pend. M2 oficial de agosto</div></div>
+    <div class="panel"><div class="pt"><i class="ig"></i>Vencimientos por Venir ($bn)</div><canvas id="cVencFuturo"></canvas><div class="src">Solo calendario de próximos vencimientos (quincenal) · Se actualiza licitación a licitación</div></div>
   </div>
   <div class="g1">
     <div class="panel">
       <div class="pt"><i class="io"></i>Vencimientos — Pasado (pesos de hoy) + Próximas Licitaciones ($bn)</div>
-      <div id="vencPreElec" style="display:inline-block;margin-bottom:10px;padding:8px 12px;border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:4px;font-family:'IBM Plex Mono',monospace"></div>
+      <div id="vencPreElec" style="display:inline-block;margin:0 10px 10px 0;padding:8px 12px;border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:4px;font-family:'IBM Plex Mono',monospace"></div>
+      <div id="vencPostElec" style="display:inline-block;margin:0 0 10px 0;padding:8px 12px;border:1px solid var(--border2);border-left:3px solid var(--dual);border-radius:4px;font-family:'IBM Plex Mono',monospace"></div>
       <canvas id="cVencTimeline" style="max-height:280px"></canvas>
       <div class="leg"><div class="li"><div class="ld" style="background:#fb923c"></div>Ya vencido (licitaciones pasadas)</div><div class="li"><div class="ld" style="background:#22c55e"></div>Próximo (calendario quincenal)</div></div>
       <div class="src">Pasado: nominal ene–sep-26 llevado a precios de sep-26 (IPC INDEC) ≈ hoy, lic.19 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
@@ -926,6 +928,11 @@ function buildVencReal(){
   // Vencimiento pre elecciones: suma desde la primera licitación pendiente hasta oct-27 inclusive
   const iFin = VENC_PROXIMAS.findIndex(x=>x.l==='oct-27');
   const preElec = VENC_PROXIMAS.slice(0,iFin+1).filter(x=>!x.vencido).reduce((a,x)=>a+x.v,0);
+  const postElec = VENC_PROXIMAS.slice(iFin+1).filter(x=>!x.vencido).reduce((a,x)=>a+x.v,0);
+  const ultimo = VENC_PROXIMAS[VENC_PROXIMAS.length-1].l;
+  document.getElementById('vencPostElec').innerHTML = `<span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Vencimiento post elecciones</span><br><span style="font-size:20px;font-weight:600;color:var(--text)">$${postElec.toFixed(1)}bn</span> <span style="font-size:10px;color:var(--muted)">post oct-27 → ${ultimo} (incl.)</span>`;
+  mkBarLbl('cVencFuturo', VENC_PROXIMAS.map(x=>x.l), VENC_PROXIMAS.map(x=>x.v), 'rgba(34,197,94,.55)', '#22c55e',
+    v=>`$${v}bn`, v=>`$${v.toFixed(1)}bn`, {x:{...XA,ticks:{...XA.ticks,maxRotation:90,minRotation:90}}});
   document.getElementById('vencPreElec').innerHTML = `<span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Vencimiento pre elecciones</span><br><span style="font-size:20px;font-weight:600;color:var(--text)">$${preElec.toFixed(1)}bn</span> <span style="font-size:10px;color:var(--muted)">${VENC_PROXIMAS[0].l} → oct-27 (incl.)</span>`;
   // ── timeline unico: pasado (real) + proximo (VENC_PROXIMAS) en un solo grafico ──
   const labelsFuturo = VENC_PROXIMAS.map(x=>x.l);
