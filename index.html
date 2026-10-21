@@ -285,6 +285,7 @@ select:focus{border-color:var(--accent)}
   <div class="g1">
     <div class="panel">
       <div class="pt"><i class="io"></i>Vencimientos — Pasado (pesos de hoy) + Próximas Licitaciones ($bn)</div>
+      <div id="vencPreElec" style="display:inline-block;margin-bottom:10px;padding:8px 12px;border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:4px;font-family:'IBM Plex Mono',monospace"></div>
       <canvas id="cVencTimeline" style="max-height:280px"></canvas>
       <div class="leg"><div class="li"><div class="ld" style="background:#fb923c"></div>Ya vencido (licitaciones pasadas)</div><div class="li"><div class="ld" style="background:#22c55e"></div>Próximo (calendario quincenal)</div></div>
       <div class="src">Pasado: nominal ene–sep-26 llevado a precios de sep-26 (IPC INDEC) ≈ hoy, lic.19 sin ajustar · Próximo: nominal, se actualiza licitación a licitación</div>
@@ -473,21 +474,34 @@ const D_TABLA = [D[D.length-1], ...D.slice(0, D.length-1)];
 // ── VENCIMIENTOS DE PRÓXIMAS LICITACIONES (calendario quincenal, $bn) ──
 // Se actualiza licitación a licitación. Formato: {l:"etiqueta eje X", v:monto en $bn, vencido:true (opcional, marca el bucket como ya pasado -> se pinta naranja como el resto de "ya vencido")}.
 const VENC_PROXIMAS = [
-  {l:"oct-26",      v:18.3},
-  {l:"Mid nov-26",  v:10.2}, {l:"nov-26",      v:22.1},
-  {l:"Mid dic-26",  v:35.4}, {l:"Mid ene-27",  v:20.0},
-  {l:"ene-27",      v:4.7},  {l:"Mid feb-27",  v:0.0},
-  {l:"feb-27",      v:6.3},  {l:"Mid mar-27",  v:0.0},
-  {l:"mar-27",      v:6.1},  {l:"Mid abr-27",  v:0.0},
-  {l:"abr-27",      v:14.7}, {l:"Mid may-27",  v:0.9},
-  {l:"may-27",      v:16.7}, {l:"Mid jun-27",  v:0.0},
-  {l:"jun-27",      v:23.4}, {l:"Mid jul-27",  v:0.0},
-  {l:"jul-27",      v:7.0},  {l:"Mid ago-27",  v:0.0},
-  {l:"ago-27",      v:1.9},  {l:"Mid sept-27", v:0.0},
-  {l:"sept-27",     v:3.8},  {l:"Mid oct-27",  v:0.0},
-  {l:"oct-27",      v:0.5},  {l:"Mid nov-27",  v:0.0},
-  {l:"nov-27",      v:0.0},  {l:"Mid dic-27",  v:0.0},
-  {l:"dic-27",      v:28.2},
+  {l:"oct-26", v:10.7},
+  {l:"Mid nov-26", v:10.2},
+  {l:"nov-26", v:28.8},
+  {l:"Mid dic-26", v:35.9},
+  {l:"Mid ene-27", v:22.0},
+  {l:"ene-27", v:7.5},
+  {l:"Mid feb-27", v:0.0},
+  {l:"feb-27", v:6.4},
+  {l:"Mid mar-27", v:0.0},
+  {l:"mar-27", v:6.1},
+  {l:"Mid abr-27", v:0.0},
+  {l:"abr-27", v:17.2},
+  {l:"Mid may-27", v:0.9},
+  {l:"may-27", v:19.3},
+  {l:"Mid jun-27", v:0.0},
+  {l:"jun-27", v:24.3},
+  {l:"Mid jul-27", v:0.0},
+  {l:"jul-27", v:7.1},
+  {l:"Mid ago-27", v:0.0},
+  {l:"ago-27", v:1.4},
+  {l:"Mid sept-27", v:0.0},
+  {l:"sept-27", v:3.8},
+  {l:"Mid oct-27", v:0.0},
+  {l:"oct-27", v:0.5},
+  {l:"Mid nov-27", v:0.0},
+  {l:"nov-27", v:0.0},
+  {l:"Mid dic-27", v:0.0},
+  {l:"dic-27", v:28.5},
 ];
 
 const INSTRS = {
@@ -909,6 +923,10 @@ function buildVencReal(){
     const mult = CPI_IDX[m] ? (CPI_HOY / CPI_IDX[m]) : 1; // oct (lic.19) sin dato oficial → constante
     return +(d.venc * mult).toFixed(2);
   });
+  // Vencimiento pre elecciones: suma desde la primera licitación pendiente hasta oct-27 inclusive
+  const iFin = VENC_PROXIMAS.findIndex(x=>x.l==='oct-27');
+  const preElec = VENC_PROXIMAS.slice(0,iFin+1).filter(x=>!x.vencido).reduce((a,x)=>a+x.v,0);
+  document.getElementById('vencPreElec').innerHTML = `<span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Vencimiento pre elecciones</span><br><span style="font-size:20px;font-weight:600;color:var(--text)">$${preElec.toFixed(1)}bn</span> <span style="font-size:10px;color:var(--muted)">${VENC_PROXIMAS[0].l} → oct-27 (incl.)</span>`;
   // ── timeline unico: pasado (real) + proximo (VENC_PROXIMAS) en un solo grafico ──
   const labelsFuturo = VENC_PROXIMAS.map(x=>x.l);
   const dataFuturo = VENC_PROXIMAS.map(x=>x.v);
